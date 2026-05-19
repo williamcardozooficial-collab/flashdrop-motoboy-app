@@ -1,52 +1,57 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API = 'https://flashdrop-backend-production.up.railway.app';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 
 export default function LoginScreen({ onLogin }) {
-  const [login, setLoginVal] = useState('');
-  const [senha, setSenha] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [nome, setNome] = useState('');
+  const [codigo, setCodigo] = useState('');
 
-  async function handleLogin() {
-    if (!login || !senha) { Alert.alert('Atencao', 'Preencha login e senha'); return; }
-    setLoading(true);
-    try {
-      const res = await fetch(API + '/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: login, password: senha, role: 'motoboy' }) });
-      const data = await res.json();
-      if (data.success && data.user) {
-        await AsyncStorage.setItem('@flashdrop_motoboy', JSON.stringify(data.user));
-        onLogin(data.user);
-      } else { Alert.alert('Erro', data.message || 'Login invalido'); }
-    } catch (e) { Alert.alert('Erro', 'Sem conexao com o servidor'); }
-    setLoading(false);
-  }
+  const handleLogin = () => {
+    if (!nome.trim() || !codigo.trim()) {
+      Alert.alert('Erro', 'Preencha todos os campos');
+      return;
+    }
+    onLogin({ nome: nome.trim(), codigo: codigo.trim() });
+  };
 
   return (
-    <KeyboardAvoidingView style={s.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={s.header}>
-        <Text style={s.logo}>FlashDrop</Text>
-        <Text style={s.sub}>Area do Motoboy</Text>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.logo}>⚡ FlashDrop</Text>
+        <Text style={styles.subtitle}>Painel do Motoboy</Text>
       </View>
-      <View style={s.form}>
-        <TextInput style={s.input} placeholder='Login' placeholderTextColor='#666' value={login} onChangeText={setLoginVal} autoCapitalize='none' />
-        <TextInput style={s.input} placeholder='Senha' placeholderTextColor='#666' value={senha} onChangeText={setSenha} secureTextEntry />
-        <TouchableOpacity style={s.btn} onPress={handleLogin} disabled={loading}>
-          {loading ? <ActivityIndicator color='#fff' /> : <Text style={s.btnText}>ENTRAR</Text>}
+      <View style={styles.form}>
+        <Text style={styles.label}>Seu Nome</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Digite seu nome"
+          value={nome}
+          onChangeText={setNome}
+          autoCapitalize="words"
+        />
+        <Text style={styles.label}>Código de Acesso</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Digite seu código"
+          value={codigo}
+          onChangeText={setCodigo}
+          secureTextEntry
+        />
+        <TouchableOpacity style={styles.btn} onPress={handleLogin}>
+          <Text style={styles.btnText}>ENTRAR</Text>
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f0f0f', justifyContent: 'center', padding: 30 },
-  header: { alignItems: 'center', marginBottom: 50 },
-  logo: { fontSize: 42, fontWeight: 'bold', color: '#ff6b00' },
-  sub: { fontSize: 16, color: '#aaa', marginTop: 8 },
-  form: { gap: 16 },
-  input: { backgroundColor: '#1a1a1a', color: '#fff', padding: 16, borderRadius: 12, fontSize: 16, borderWidth: 1, borderColor: '#333' },
-  btn: { backgroundColor: '#ff6b00', padding: 18, borderRadius: 12, alignItems: 'center', marginTop: 8 },
-  btnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#fff' },
+  header: { backgroundColor: '#ff8c00', padding: 40, alignItems: 'center' },
+  logo: { fontSize: 32, fontWeight: 'bold', color: '#fff' },
+  subtitle: { fontSize: 16, color: '#fff', marginTop: 8 },
+  form: { padding: 24 },
+  label: { fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 6, marginTop: 16 },
+  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, fontSize: 16, backgroundColor: '#f9f9f9' },
+  btn: { backgroundColor: '#ff8c00', borderRadius: 8, padding: 16, alignItems: 'center', marginTop: 24 },
+  btnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });

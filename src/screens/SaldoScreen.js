@@ -1,13 +1,59 @@
-import React,{useState,useEffect} from 'react';
-import {View,Text,ScrollView,StyleSheet,RefreshControl} from 'react-native';
-const API='https://flashdrop-backend-production.up.railway.app';
-export default function SaldoScreen({motoboy}){
-  const [eventos,setEventos]=useState([]);
-  const [saldo,setSaldo]=useState(0);
-  const [refreshing,setRefreshing]=useState(false);
-  useEffect(()=>{load();},[]);
-  async function load(){try{const r=await fetch(API+'/api/motoboy/saldo?id='+motoboy.id);if(r.ok){const d=await r.json();setEventos(d.eventos||[]);setSaldo(d.saldo||0);}}catch(e){}}
-  const onRefresh=async()=>{setRefreshing(true);await load();setRefreshing(false);};
-  return(<View style={s.c}><View style={s.h}><Text style={s.t}>Saldo</Text><Text style={s.saldo}>R$ {parseFloat(saldo).toFixed(2)}</Text></View><ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor='#ff6b00'/>}><Text style={s.st}>Ultimas 24h</Text>{eventos.length===0?<Text style={s.v}>Nenhum evento nas ultimas 24h</Text>:eventos.map((e,i)=>(<View key={i} style={s.card}><View style={s.row}><Text style={s.desc}>{e.description}</Text><Text style={[s.val,{color:e.amount>0?'#00d26a':'#ff4444'}]}>{e.amount>0?'+':''}R$ {parseFloat(e.amount).toFixed(2)}</Text></View><Text style={s.data}>{e.created_at?new Date(e.created_at).toLocaleString('pt-BR'):''}</Text></View>))}<View style={{height:20}}/></ScrollView></View>);
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+
+export default function SaldoScreen({ user }) {
+  const [saldo] = useState({ disponivel: 127.50, pendente: 45.00, total: 172.50 });
+  const [historico] = useState([
+    { id: '1', desc: 'Entrega #001', valor: '+R$ 15,00', data: '19/05', tipo: 'entrada' },
+    { id: '2', desc: 'Entrega #002', valor: '+R$ 22,00', data: '19/05', tipo: 'entrada' },
+    { id: '3', desc: 'Saque', valor: '-R$ 50,00', data: '18/05', tipo: 'saida' },
+    { id: '4', desc: 'Entrega #003', valor: '+R$ 18,00', data: '18/05', tipo: 'entrada' },
+  ]);
+
+  return (
+    <ScrollView style={styles.container}>
+      <View style={styles.saldoCard}>
+        <Text style={styles.saldoLabel}>Saldo Disponível</Text>
+        <Text style={styles.saldoValor}>R$ {saldo.disponivel.toFixed(2).replace('.', ',')}</Text>
+        <View style={styles.saldoRow}>
+          <View style={styles.saldoItem}>
+            <Text style={styles.saldoItemLabel}>Pendente</Text>
+            <Text style={styles.saldoItemValor}>R$ {saldo.pendente.toFixed(2).replace('.', ',')}</Text>
+          </View>
+          <View style={styles.saldoItem}>
+            <Text style={styles.saldoItemLabel}>Total do mês</Text>
+            <Text style={styles.saldoItemValor}>R$ {saldo.total.toFixed(2).replace('.', ',')}</Text>
+          </View>
+        </View>
+      </View>
+      <Text style={styles.sectionTitle}>Histórico</Text>
+      {historico.map(item => (
+        <View key={item.id} style={styles.histCard}>
+          <View>
+            <Text style={styles.histDesc}>{item.desc}</Text>
+            <Text style={styles.histData}>{item.data}</Text>
+          </View>
+          <Text style={[styles.histValor, { color: item.tipo === 'entrada' ? '#4CAF50' : '#f44336' }]}>
+            {item.valor}
+          </Text>
+        </View>
+      ))}
+    </ScrollView>
+  );
 }
-const s=StyleSheet.create({c:{flex:1,backgroundColor:'#0f0f0f'},h:{padding:20,paddingTop:50,backgroundColor:'#1a1a1a',borderBottomWidth:1,borderBottomColor:'#2a2a2a',alignItems:'center'},t:{color:'#fff',fontSize:22,fontWeight:'bold'},saldo:{color:'#f0c040',fontSize:36,fontWeight:'bold',marginTop:8},st:{color:'#aaa',fontSize:13,margin:16,marginBottom:8},v:{color:'#666',textAlign:'center',padding:30},card:{marginHorizontal:16,marginBottom:10,backgroundColor:'#1a1a1a',padding:14,borderRadius:10,borderWidth:1,borderColor:'#2a2a2a'},row:{flexDirection:'row',justifyContent:'space-between'},desc:{color:'#ddd',fontSize:14,flex:1},val:{fontWeight:'bold',fontSize:15},data:{color:'#666',fontSize:11,marginTop:4}});
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  saldoCard: { backgroundColor: '#ff8c00', padding: 24, margin: 8, borderRadius: 8, alignItems: 'center' },
+  saldoLabel: { color: '#fff', fontSize: 14 },
+  saldoValor: { color: '#fff', fontSize: 36, fontWeight: 'bold', marginVertical: 8 },
+  saldoRow: { flexDirection: 'row', marginTop: 8 },
+  saldoItem: { alignItems: 'center', marginHorizontal: 16 },
+  saldoItemLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
+  saldoItemValor: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', margin: 16 },
+  histCard: { backgroundColor: '#fff', margin: 8, padding: 16, borderRadius: 8, elevation: 2, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  histDesc: { fontSize: 14, fontWeight: '600', color: '#333' },
+  histData: { fontSize: 12, color: '#999', marginTop: 2 },
+  histValor: { fontSize: 16, fontWeight: 'bold' },
+});

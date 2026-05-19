@@ -1,13 +1,49 @@
-import React,{useState,useEffect} from 'react';
-import {View,Text,ScrollView,TouchableOpacity,StyleSheet,Alert,RefreshControl,Linking} from 'react-native';
-const API='https://flashdrop-backend-production.up.railway.app';
-export default function MeusServicosScreen({motoboy}){
-  const [pedidos,setPedidos]=useState([]);
-  const [refreshing,setRefreshing]=useState(false);
-  useEffect(()=>{load();const i=setInterval(load,15000);return()=>clearInterval(i);},[]);
-  async function load(){try{const r=await fetch(API+'/api/motoboy/meus-servicos?id='+motoboy.id);if(r.ok)setPedidos(await r.json());}catch(e){}}
-  async function concluir(id){Alert.alert('Confirmar','Marcar como concluida?',[{text:'Cancelar',style:'cancel'},{text:'Confirmar',onPress:async()=>{try{const r=await fetch(API+'/api/pedidos/concluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pedidoId:id,motoboyId:motoboy.id})});const d=await r.json();if(d.success){Alert.alert('Entrega concluida!');load();}else Alert.alert('Erro',d.message||'Tente novamente');}catch(e){Alert.alert('Erro','Sem conexao');}}}]);}
-  const onRefresh=async()=>{setRefreshing(true);await load();setRefreshing(false);};
-  return(<View style={s.c}><View style={s.h}><Text style={s.t}>Meus Servicos</Text></View><ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor='#ff6b00'/>}>{pedidos.length===0?<Text style={s.v}>Nenhum servico em andamento</Text>:pedidos.map(p=>(<View key={p.id} style={s.card}><View style={s.row}><Text style={s.loja}>{p.store_name}</Text></View><Text style={s.lbl}>Entrega:</Text><Text style={s.val}>{p.delivery_address}</Text><Text style={s.lbl}>Taxa:</Text><Text style={[s.val,{color:'#f0c040'}]}>R$ {parseFloat(p.delivery_fee||0).toFixed(2)}</Text><View style={s.btns}><TouchableOpacity style={s.bm} onPress={()=>Linking.openURL('https://maps.google.com/?q='+encodeURIComponent(p.delivery_address))}><Text style={s.bmt}>Abrir Maps</Text></TouchableOpacity><TouchableOpacity style={s.bc} onPress={()=>concluir(p.id)}><Text style={s.bct}>Concluido</Text></TouchableOpacity></View></View>))}<View style={{height:20}}/></ScrollView></View>);
+import React, { useState } from 'react';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+
+const STATUS_COLORS = { 'Em andamento': '#ff8c00', 'Concluído': '#4CAF50', 'Cancelado': '#f44336' };
+
+export default function MeusServicosScreen({ user }) {
+  const [servicos] = useState([
+    { id: '1', origem: 'Rua A, 100', destino: 'Rua B, 200', valor: 'R$ 15,00', status: 'Concluído', hora: '14:30' },
+    { id: '2', origem: 'Av. C, 50', destino: 'Rua D, 300', valor: 'R$ 22,00', status: 'Em andamento', hora: '15:45' },
+    { id: '3', origem: 'Rua E, 77', destino: 'Av. F, 10', valor: 'R$ 18,00', status: 'Cancelado', hora: '16:00' },
+  ]);
+
+  const renderItem = ({ item }) => (
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.hora}>{item.hora}</Text>
+        <View style={[styles.badge, { backgroundColor: STATUS_COLORS[item.status] || '#999' }]}>
+          <Text style={styles.badgeText}>{item.status}</Text>
+        </View>
+      </View>
+      <Text style={styles.rota}>📍 {item.origem}</Text>
+      <Text style={styles.rota}>🏁 {item.destino}</Text>
+      <Text style={styles.valor}>{item.valor}</Text>
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={servicos}
+        keyExtractor={item => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={styles.list}
+      />
+    </View>
+  );
 }
-const s=StyleSheet.create({c:{flex:1,backgroundColor:'#0f0f0f'},h:{padding:20,paddingTop:50,backgroundColor:'#1a1a1a',borderBottomWidth:1,borderBottomColor:'#2a2a2a'},t:{color:'#fff',fontSize:22,fontWeight:'bold'},v:{color:'#666',textAlign:'center',padding:40},card:{margin:16,marginBottom:0,backgroundColor:'#1a1a1a',padding:16,borderRadius:14,borderWidth:1,borderColor:'#2a2a2a'},row:{flexDirection:'row',justifyContent:'space-between',marginBottom:12},loja:{color:'#fff',fontWeight:'bold',fontSize:17},lbl:{color:'#888',fontSize:12,marginTop:8},val:{color:'#fff',fontSize:14,marginTop:2},btns:{flexDirection:'row',gap:10,marginTop:16},bm:{flex:1,backgroundColor:'#1a2a3a',padding:12,borderRadius:10,alignItems:'center'},bmt:{color:'#4da6ff',fontWeight:'600'},bc:{flex:1,backgroundColor:'#1a3a1a',padding:12,borderRadius:10,alignItems:'center'},bct:{color:'#00d26a',fontWeight:'600'}});
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  list: { padding: 8 },
+  card: { backgroundColor: '#fff', margin: 8, padding: 16, borderRadius: 8, elevation: 2 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+  hora: { fontSize: 14, color: '#666' },
+  badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
+  badgeText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
+  rota: { fontSize: 14, color: '#333', marginBottom: 4 },
+  valor: { fontSize: 16, fontWeight: 'bold', color: '#ff8c00', marginTop: 8 },
+});
