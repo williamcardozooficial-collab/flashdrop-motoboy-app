@@ -1,77 +1,56 @@
-import React, { useState } from 'react';
-import {
-  View, Text, TextInput, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator,
-  KeyboardAvoidingView, Platform, ScrollView
-} from 'react-native';
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_BASE_URL = 'https://api.flashdrop.com.br';
+const API = "https://flashdrop-backend-production.up.railway.app";
 
 export default function LoginScreen({ onLogin }) {
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!email.trim() || !senha.trim()) {
-      Alert.alert('Erro', 'Preencha o email e a senha');
+    if (!username.trim() || !password.trim()) {
+      Alert.alert("Erro", "Preencha usuario e senha");
       return;
     }
     setLoading(true);
     try {
-      const response = await fetch(API_BASE_URL + '/api/motoboy/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), senha }),
+      const res = await fetch(API + "/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username.trim(), password }),
       });
-      const data = await response.json();
-      if (response.ok && (data.token || data.motoboy || data.user)) {
-        onLogin(data.motoboy || data.user || { email: email.trim(), token: data.token });
+      const data = await res.json();
+      if (res.ok && data.role === "motoboy") {
+        await AsyncStorage.setItem("flashdrop_user", JSON.stringify(data));
+        onLogin(data);
+      } else if (res.ok && data.role !== "motoboy") {
+        Alert.alert("Acesso negado", "Este app e apenas para motoboys.");
       } else {
-        Alert.alert('Erro no login', data.message || data.error || 'Email ou senha incorretos');
+        Alert.alert("Erro", data.error || "Usuario ou senha invalidos");
       }
-    } catch (error) {
-      Alert.alert('Erro de conexao', 'Nao foi possivel conectar. Verifique sua internet.');
+    } catch (e) {
+      Alert.alert("Sem conexao", "Nao foi possivel conectar ao servidor. Tente novamente.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <View style={styles.header}>
-          <Text style={styles.logo}>⚡ FlashDrop</Text>
-          <Text style={styles.subtitle}>Area do Motoboy</Text>
+    <KeyboardAvoidingView style={s.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
+        <View style={s.header}>
+          <Text style={s.logo}>FlashDrop</Text>
+          <Text style={s.sub}>Area do Motoboy</Text>
         </View>
-        <View style={styles.form}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="seu@email.com"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          <Text style={styles.label}>Senha</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Sua senha"
-            value={senha}
-            onChangeText={setSenha}
-            secureTextEntry={true}
-          />
-          <TouchableOpacity style={[styles.btn, loading && styles.btnDisabled]} onPress={handleLogin} disabled={loading}>
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.btnText}>ENTRAR</Text>
-            )}
+        <View style={s.form}>
+          <Text style={s.label}>Usuario</Text>
+          <TextInput style={s.input} placeholder="Digite seu usuario" value={username} onChangeText={setUsername} autoCapitalize="none" autoCorrect={false} />
+          <Text style={s.label}>Senha</Text>
+          <TextInput style={s.input} placeholder="Digite sua senha" value={password} onChangeText={setPassword} secureTextEntry />
+          <TouchableOpacity style={[s.btn, loading && s.btnOff]} onPress={handleLogin} disabled={loading}>
+            {loading ? <ActivityIndicator color="#000" /> : <Text style={s.btnTxt}>Entrar</Text>}
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -79,16 +58,16 @@ export default function LoginScreen({ onLogin }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  scroll: { flexGrow: 1 },
-  header: { backgroundColor: '#ff8c00', padding: 60, alignItems: 'center' },
-  logo: { fontSize: 36, fontWeight: 'bold', color: '#fff' },
-  subtitle: { fontSize: 16, color: '#fff', marginTop: 8 },
-  form: { padding: 24, marginTop: 16 },
-  label: { fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 6, marginTop: 16 },
-  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, fontSize: 16, backgroundColor: '#f9f9f9' },
-  btn: { backgroundColor: '#ff8c00', borderRadius: 8, padding: 16, alignItems: 'center', marginTop: 32 },
-  btnDisabled: { backgroundColor: '#ccc' },
-  btnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#764ba2" },
+  scroll: { flexGrow: 1, alignItems: "center", justifyContent: "center", padding: 20 },
+  header: { alignItems: "center", marginBottom: 32 },
+  logo: { fontSize: 40, fontWeight: "bold", color: "#fff" },
+  sub: { fontSize: 16, color: "rgba(255,255,255,0.8)", marginTop: 6 },
+  form: { width: "100%", backgroundColor: "#fff", borderRadius: 20, padding: 28 },
+  label: { fontSize: 14, fontWeight: "600", color: "#333", marginBottom: 6, marginTop: 14 },
+  input: { borderWidth: 2, borderColor: "#e0e0e0", borderRadius: 10, padding: 14, fontSize: 16 },
+  btn: { backgroundColor: "#667eea", borderRadius: 10, padding: 16, alignItems: "center", marginTop: 24 },
+  btnOff: { backgroundColor: "#ccc" },
+  btnTxt: { color: "#fff", fontSize: 16, fontWeight: "700" },
 });

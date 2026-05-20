@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, ActivityIndicator } from 'react-native';
-
 import LoginScreen from './src/screens/LoginScreen';
 import DisponiveisScreen from './src/screens/DisponiveisScreen';
 import MeusServicosScreen from './src/screens/MeusServicosScreen';
@@ -13,30 +13,33 @@ import SaldoScreen from './src/screens/SaldoScreen';
 const Tab = createBottomTabNavigator();
 
 export default function App() {
-  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    AsyncStorage.getItem('motoboy_user').then(val => {
-      if (val) setUser(JSON.parse(val));
+    AsyncStorage.getItem('flashdrop_user').then(val => {
+      if (val) {
+        const u = JSON.parse(val);
+        if (u && u.id && u.role === 'motoboy') setUser(u);
+      }
       setLoading(false);
     });
   }, []);
 
   const handleLogin = async (userData) => {
-    await AsyncStorage.setItem('motoboy_user', JSON.stringify(userData));
+    await AsyncStorage.setItem('flashdrop_user', JSON.stringify(userData));
     setUser(userData);
   };
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('motoboy_user');
+    await AsyncStorage.removeItem('flashdrop_user');
     setUser(null);
   };
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <ActivityIndicator size="large" color="#ff8c00" />
+      <View style={{ flex: 1, backgroundColor: '#1a1a1a', alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color="#ffcc00" />
       </View>
     );
   }
@@ -49,25 +52,38 @@ export default function App() {
     <NavigationContainer>
       <Tab.Navigator
         screenOptions={{
-          tabBarActiveTintColor: '#ff8c00',
-          tabBarInactiveTintColor: '#999',
-          tabBarStyle: { backgroundColor: '#fff', borderTopColor: '#eee' },
-          headerStyle: { backgroundColor: '#ff8c00' },
+          tabBarActiveTintColor: '#ffcc00',
+          tabBarInactiveTintColor: '#888',
+          tabBarStyle: { backgroundColor: '#111', borderTopColor: '#333', height: 60 },
+          tabBarLabelStyle: { fontSize: 11, fontWeight: '600', marginBottom: 4 },
+          headerStyle: { backgroundColor: '#0f0f0f' },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: 'bold' },
         }}
       >
-        <Tab.Screen name="Disponíveis" options={{ tabBarLabel: 'Disponíveis' }}>
-          {() => <DisponiveisScreen user={user} onLogout={handleLogout} />}
+        <Tab.Screen
+          name="Disponiveis"
+          options={{ tabBarLabel: 'Disponíveis', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text>, title: '📋 Disponíveis' }}
+        >
+          {() => <DisponiveisScreen user={user} onLogout={handleLogout} setUser={setUser} />}
         </Tab.Screen>
-        <Tab.Screen name="Meus Serviços" options={{ tabBarLabel: 'Meus Serviços' }}>
-          {() => <MeusServicosScreen user={user} />}
+        <Tab.Screen
+          name="MeusServicos"
+          options={{ tabBarLabel: 'Meus Serviços', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🛵</Text>, title: '🛵 Meus Serviços' }}
+        >
+          {() => <MeusServicosScreen user={user} setUser={setUser} />}
         </Tab.Screen>
-        <Tab.Screen name="Entregues" options={{ tabBarLabel: 'Entregues' }}>
+        <Tab.Screen
+          name="Entregues"
+          options={{ tabBarLabel: 'Entregues', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>✅</Text>, title: '✅ Entregues' }}
+        >
           {() => <EntreguesScreen user={user} />}
         </Tab.Screen>
-        <Tab.Screen name="Saldo" options={{ tabBarLabel: 'Saldo' }}>
-          {() => <SaldoScreen user={user} />}
+        <Tab.Screen
+          name="Saldo"
+          options={{ tabBarLabel: 'Saldo', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💰</Text>, title: '💰 Saldo' }}
+        >
+          {() => <SaldoScreen user={user} setUser={setUser} />}
         </Tab.Screen>
       </Tab.Navigator>
     </NavigationContainer>
