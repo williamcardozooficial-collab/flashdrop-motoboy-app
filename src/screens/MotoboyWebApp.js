@@ -184,8 +184,9 @@ function makeNavBtns(label, address) {
 var API = "https://flashdrop-backend-production.up.railway.app";
 var tg = { showAlert: function(m){ alert(m); }, expand: function(){} };
 
-var user = JSON.parse(localStorage.getItem("flashdrop_user") || "{}");
-if (!user.id || user.role !== "motoboy") { doLogout(); }
+var user = ${JSON.stringify(user)};
+try { localStorage.setItem("flashdrop_user", JSON.stringify(user)); } catch(e) {}
+if (!user || !user.id) { doLogout(); }
 
 var activeOrders = [];
 var allOrdersCache = [];
