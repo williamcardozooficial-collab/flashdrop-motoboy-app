@@ -701,7 +701,7 @@ export default function MotoboyWebApp({ user, onLogout }) {
     <View style={styles.container}>
       <WebView
         ref={webviewRef}
-        source={{ html }}
+        source={{ html, baseUrl: 'https://flashdrop-backend-production.up.railway.app' }}
         injectedJavaScriptBeforeContentLoaded={injectedJS}
         onMessage={(event) => {
           if (event.nativeEvent.data === 'logout') {
