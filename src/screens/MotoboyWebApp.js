@@ -429,14 +429,39 @@ function makeOrderCard(o, cardType) {
                 btnPagar.style.marginTop = "8px";
                 btnPagar.innerHTML = "&#x1F3C3; Pagar ao Restaurante";
                 (function(oid) {
-                  btnPagar.addEventListener("click", function() {
-                    showConfirm("Pagar ao Restaurante", "Confirmar que voc\u00ea pagou ao restaurante?", async function() {
-                      try {
-                        var r = await fetch(API + "/orders/" + oid, { method: "PUT", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ pagou_restaurante: true }) });
-                        if (r.ok) { alert("Pagamento ao restaurante registrado!"); await loadOrders(); }
-                        else { alert("Erro ao registrar pagamento."); }
-                      } catch(e) { alert("Erro: " + e.message); }
-                    });
+                  btnPagar.addEventListener("click", async function() {
+                    try {
+                      var infoR = await fetch(API + "/orders/" + oid + "/pagar-restaurante/info");
+                      var info = infoR.ok ? await infoR.json() : {};
+                      var maxVal = parseFloat(info.max_valor || 0);
+                      // Build modal overlay
+                      var overlay = document.createElement("div");
+                      overlay.id = "pagar-rest-overlay";
+                      overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;";
+                      overlay.innerHTML = "<div style='background:#1e1e2e;border:2px solid #4caf50;border-radius:16px;padding:24px;width:85%;max-width:360px;'>" +
+                        "<div style='font-size:18px;font-weight:700;color:#4caf50;margin-bottom:8px;'>&#x1F4B8; Pagar ao Restaurante</div>" +
+                        "<div style='font-size:13px;color:#ccc;margin-bottom:16px;'>Valor maximo disponivel: <strong style=\'color:#fff;\'>R$ " + maxVal.toFixed(2) + "</strong></div>" +
+                        "<input id='pagar-rest-valor' type='number' step='0.01' min='0.01' max='" + maxVal + "' placeholder='Valor a pagar (R$)' style='width:100%;box-sizing:border-box;padding:12px;background:#2a2a3e;border:1px solid #4caf50;border-radius:8px;color:#fff;font-size:15px;margin-bottom:12px;outline:none;' />" +
+                        "<button id='pagar-rest-confirm' style='width:100%;padding:14px;background:#4caf50;border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;'>Confirmar Pagamento</button>" +
+                        "<button id='pagar-rest-cancel' style='width:100%;padding:12px;background:#333;border:1px solid #555;border-radius:8px;color:#ccc;font-size:14px;cursor:pointer;'>Cancelar</button>" +
+                        "</div>";
+                      document.body.appendChild(overlay);
+                      document.getElementById("pagar-rest-cancel").addEventListener("click", function() { overlay.remove(); });
+                      document.getElementById("pagar-rest-confirm").addEventListener("click", async function() {
+                        var val = parseFloat(document.getElementById("pagar-rest-valor").value);
+                        if (!val || val <= 0) { alert("Informe um valor v\u00e1lido."); return; }
+                        if (val > maxVal) { alert("Valor maior que o m\u00e1ximo dispon\u00edvel."); return; }
+                        try {
+                          var pr = await fetch(API + "/orders/" + oid + "/pagar-restaurante", {
+                            method: "POST",
+                            headers: {"Content-Type":"application/json"},
+                            body: JSON.stringify({ motoboy_id: user.id, valor: val })
+                          });
+                          if (pr.ok) { overlay.remove(); alert("Pagamento registrado!"); await loadOrders(); }
+                          else { alert("Erro ao registrar pagamento."); }
+                        } catch(e2) { alert("Erro: " + e2.message); }
+                      });
+                    } catch(e) { alert("Erro ao buscar informa\u00e7\u00f5es: " + e.message); }
                   });
                 })(o.id);
                 card.appendChild(btnPagar);
