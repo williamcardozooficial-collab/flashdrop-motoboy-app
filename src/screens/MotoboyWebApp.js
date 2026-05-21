@@ -294,8 +294,8 @@ function updatePenaltyBanner(blockedUntil) {
 
 function makeInfoRow(label, value, highlight) {
   var row = document.createElement("div"); row.className = "info-row";
-  var l = document.createElement("span"); l.className = "info-label"; l.textContent = label;
-  var v = document.createElement("span"); v.className = "info-value"; v.textContent = value;
+  var l = document.createElement("span"); l.className = "info-label"; l.innerHTML = label;
+  var v = document.createElement("span"); v.className = "info-value"; v.innerHTML = value;
   if (highlight) v.style.color = "#ffcc00";
   row.appendChild(l); row.appendChild(v);
   return row;
@@ -417,7 +417,37 @@ function makeOrderCard(o, cardType) {
   var isDinheiro = o.tipo_pagamento === "dinheiro";
   card.appendChild(makeInfoRow(isDinheiro ? "&#x1F4B0; Ganho Liquido" : "&#x1F4B0; Ganho", "R$ " + vMotoboy.toFixed(2), true));
 
-  var tl = buildTimeline(o);
+  if (cardType === "mine" && isDinheiro) {
+              var valorProd = parseFloat(o.valor_pedido || 0);
+              var cashBanner = document.createElement("div");
+              cashBanner.style.cssText = "background:#1a1500;border:2px solid #ffa500;border-radius:10px;padding:12px;margin:10px 0;";
+              cashBanner.innerHTML = "<div style='font-size:13px;color:#ffa500;font-weight:700;'>&#x1F4B5; Dinheiro: R$ " + valorProd.toFixed(2) + " do produto ser\u00e1 debitado do seu saldo (valor que voc\u00ea cobrou da loja).</div>";
+              card.appendChild(cashBanner);
+              if (!o.pagou_restaurante) {
+                var btnPagar = document.createElement("button");
+                btnPagar.className = "btn-action btn-accept";
+                btnPagar.style.marginTop = "8px";
+                btnPagar.innerHTML = "&#x1F3C3; Pagar ao Restaurante";
+                (function(oid) {
+                  btnPagar.addEventListener("click", function() {
+                    showConfirm("Pagar ao Restaurante", "Confirmar que voc\u00ea pagou ao restaurante?", async function() {
+                      try {
+                        var r = await fetch(API + "/orders/" + oid, { method: "PUT", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ pagou_restaurante: true }) });
+                        if (r.ok) { alert("Pagamento ao restaurante registrado!"); await loadOrders(); }
+                        else { alert("Erro ao registrar pagamento."); }
+                      } catch(e) { alert("Erro: " + e.message); }
+                    });
+                  });
+                })(o.id);
+                card.appendChild(btnPagar);
+              } else {
+                var paidDiv = document.createElement("div");
+                paidDiv.style.cssText = "text-align:center;color:#28a745;font-weight:600;font-size:13px;margin:8px 0;padding:10px;background:#0a1a0a;border-radius:8px;";
+                paidDiv.innerHTML = "&#x2705; Pagamento ao restaurante confirmado";
+                card.appendChild(paidDiv);
+              }
+            }
+            var tl = buildTimeline(o);
   if (tl) card.appendChild(tl);
 
   var actionKey = cardType === "pending" ? "pendente" : o.status;
@@ -644,7 +674,26 @@ async function loadWalletEvents() {
   } catch(e) {}
 }
 
-async function init() {
+async function loadPromoAtiva() {
+            try {
+              var r = await fetch(API + "/promotions/motoboy/" + user.id + "/active");
+              if (!r.ok) return;
+              var promo = await r.json();
+              var banner = document.getElementById("avisos-mb-banner");
+              if (!banner || !promo || !promo.id) return;
+              var total = parseInt(promo.meta_entregas || 0);
+              var feitas = parseInt(promo.entregas_feitas || 0);
+              var faltam = Math.max(total - feitas, 0);
+              var pct = total > 0 ? Math.round((feitas / total) * 100) : 0;
+              var promoDiv = document.createElement("div");
+              promoDiv.style.cssText = "background:#1a2a00;border:1px solid #4caf50;border-radius:10px;padding:12px;margin-top:10px;";
+              promoDiv.innerHTML = "<div style='font-size:10px;color:#4caf50;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px'>&#x1F3AF; Promo\u00e7\u00e3o Ativa</div><div style='font-weight:700;color:#ffcc00;font-size:14px;margin-bottom:4px'>" + (promo.nome || "Promo\u00e7\u00e3o") + " <span style='float:right;color:#aaa;font-size:12px'>" + feitas + "/" + total + "</span></div><div style='background:#333;border-radius:4px;height:6px;margin-bottom:6px'><div style='background:#ffcc00;height:6px;border-radius:4px;width:" + pct + "%'></div></div><div style='font-size:12px;color:#ccc'>Faltam " + faltam + " entrega(s) para ganhar R$ " + parseFloat(promo.valor_premio || 0).toFixed(2) + "!</div>";
+              banner.style.display = "block";
+              banner.appendChild(promoDiv);
+            } catch(e) {}
+          }
+
+          async function init() {
   document.getElementById("motoboy-name").textContent = user.name || "Motoboy";
   updateStatusUI();
   await syncUser();
@@ -659,6 +708,7 @@ async function init() {
   }
   setInterval(syncUser, 30000);
   loadAvisosMotboy(); setInterval(loadAvisosMotboy, 60000);
+              loadPromoAtiva(); setInterval(loadPromoAtiva, 30000);
   loadMbIndicacao();
   loadWalletEvents();
 }
