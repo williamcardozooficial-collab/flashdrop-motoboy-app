@@ -172,7 +172,7 @@ function openNav(app, address) {
 function makeNavBtns(label, address) {
   if (!address) return null;
   var wrap = document.createElement('div'); wrap.style = 'margin:6px 0 2px';
-  var lbl = document.createElement('div'); lbl.className = 'nav-label'; lbl.textContent = '&#x1F5FA; Navegar ate ' + label + ':';
+  var lbl = document.createElement('div'); lbl.className = 'nav-label'; lbl.innerHTML = '&#x1F5FA; Navegar ate ' + label + ':';
   var gmaps = document.createElement('button'); gmaps.className = 'btn-nav btn-nav-gmaps'; gmaps.innerHTML = '&#x1F4CD; Google Maps'; gmaps.onclick = function() { openNav('gmaps', address); };
   var waze = document.createElement('button'); waze.className = 'btn-nav btn-nav-waze'; waze.innerHTML = '&#x1F697; Waze'; waze.onclick = function() { openNav('waze', address); };
   var grp = document.createElement('div'); grp.className = 'btn-nav-group';
@@ -234,8 +234,8 @@ function updateTimerEl(orderId) {
 
 function updateStatusUI() {
   var badge = document.getElementById("status-badge");
-  if (user.online) { badge.textContent = "&#x1F7E2; Online - toque para sair"; badge.className = "status-badge online"; }
-  else { badge.textContent = "&#x26AB; Offline - toque para entrar"; badge.className = "status-badge offline"; }
+  if (user.online) { badge.innerHTML = "&#x1F7E2; Online - toque para sair"; badge.className = "status-badge online"; }
+  else { badge.innerHTML = "&#x26AB; Offline - toque para entrar"; badge.className = "status-badge offline"; }
 }
 
 async function toggleOnline() {
@@ -271,8 +271,8 @@ async function syncUser() {
       user = Object.assign({}, user, u);
       localStorage.setItem("flashdrop_user", JSON.stringify(user));
       document.getElementById("user-balance").textContent = "R$ " + parseFloat(user.balance || 0).toFixed(2);
-      document.getElementById("motoboy-name").textContent = user.name;
-      var cidEl = document.getElementById("motoboy-custom-id"); if(cidEl && user.custom_id) cidEl.textContent = "&#x1FAA6; " + user.custom_id;
+      document.getElementById("motoboy-name").innerHTML = user.name;
+      var cidEl = document.getElementById("motoboy-custom-id"); if(cidEl && user.custom_id) cidEl.innerHTML = "&#x1FAA6; " + user.custom_id;
       updateStatusUI();
       updatePenaltyBanner(u.blocked_until);
     }
@@ -322,7 +322,7 @@ function makeTimerEl(orderId, tAceito) {
   var cls = remaining <= 120 ? "urgent" : remaining <= 300 ? "" : "ok";
   var txt = remaining <= 0 ? "Tempo esgotado! Chegue logo na loja." : ("Chegue na loja em " + mins + ":" + (secs < 10 ? "0" : "") + secs);
   var box = document.createElement("div"); box.className = "timer-box " + cls; box.id = "timer-" + orderId;
-  var icon = document.createElement("span"); icon.className = "timer-icon"; icon.textContent = "&#x23F1;";
+  var icon = document.createElement("span"); icon.className = "timer-icon"; icon.innerHTML = "&#x23F1;";
   var text = document.createElement("span"); text.className = "timer-text"; text.textContent = txt;
   box.appendChild(icon); box.appendChild(text);
   return box;
@@ -404,11 +404,11 @@ function makeOrderCard(o, cardType) {
       }
     }
   } else if (o.status === "entregue") {
-    var privDiv = document.createElement("div"); privDiv.style = "font-size:11px;color:#666;font-style:italic;margin:4px 0;"; privDiv.textContent = "&#x1F512; Dados do cliente ocultados por privacidade."; card.appendChild(privDiv);
+    var privDiv = document.createElement("div"); privDiv.style = "font-size:11px;color:#666;font-style:italic;margin:4px 0;"; privDiv.innerHTML = "&#x1F512; Dados do cliente ocultados por privacidade."; card.appendChild(privDiv);
     if (o.endereco_entrega) card.appendChild(makeInfoRow("&#x1F4CD; Entrega", o.endereco_entrega));
   } else {
     if (o.endereco_entrega) card.appendChild(makeInfoRow("&#x1F4CD; Entrega", o.endereco_entrega));
-    var privDiv2 = document.createElement("div"); privDiv2.style = "font-size:11px;color:#ff9500;font-style:italic;margin:4px 0;"; privDiv2.textContent = "&#x1F512; Dados do cliente liberados ao coletar."; card.appendChild(privDiv2);
+    var privDiv2 = document.createElement("div"); privDiv2.style = "font-size:11px;color:#ff9500;font-style:italic;margin:4px 0;"; privDiv2.innerHTML = "&#x1F512; Dados do cliente liberados ao coletar."; card.appendChild(privDiv2);
   }
 
   if (cardType === "mine" && o.telefone_loja) card.appendChild(makeInfoRow("&#x1F4DE; Tel Loja", o.telefone_loja));
