@@ -100,7 +100,7 @@ body{font-family:-apple-system,sans-serif;background:#1a1a1a;color:#fff;min-heig
 </head>
 <body>
 <div class="header" style="position:relative">
-<button onclick="location.reload()" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.1);color:#ffcc00;border:1px solid #555;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:bold;cursor:pointer;">&#x1F504;</button>
+<button id="notif-toggle-btn" onclick="notifEnabled=!notifEnabled;this.textContent=notifEnabled?'\uD83D\uDD14':'\uD83D\uDD15';" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.1);color:#ffcc00;border:1px solid #555;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:bold;cursor:pointer;">🔔</button>
 <button class="logout-btn" onclick="doLogout()">Sair</button>
 <h1>FlashDrop Motoboy</h1>
 <div id="motoboy-name" style="color:#aaa;font-size:14px">Carregando...</div>
@@ -194,6 +194,8 @@ var allUsersCache = [];
 var activeTimers = {};
 var _autoOfflineTimer = null;
 var _onlineAt = null;
+        var notifEnabled = true;
+        var _prevOrderIds = new Set();
 var AUTO_OFFLINE_MS = 60 * 60 * 1000;
 var TIMER_DURATION = 15 * 60;
 
@@ -511,11 +513,31 @@ function updateTabBadge(id, count) {
   if (count > 0) { el.textContent = count; el.style.display = 'inline-block'; } else { el.style.display = 'none'; }
 }
 
-async function loadOrders() {
+async       function playBeep() {
+        try {
+          var ctx = new (window.AudioContext || window.webkitAudioContext)();
+          var osc = ctx.createOscillator();
+          var gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = 'sine';
+          osc.frequency.value = 880;
+          gain.gain.setValueAtTime(0.3, ctx.currentTime);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 5);
+        } catch(e) {}
+      }
+
+      function loadOrders() {
   try {
     var r = await fetch(API + "/orders");
     var orders = await r.json();
     allOrdersCache = orders;
+        // New order notification detection
+        var _newOrderIds = allOrdersCache.map(function(o){return o.id||o._id||o.orderId||'';});
+        var _hasNew = _newOrderIds.some(function(id){return id && !_prevOrderIds.has(id);});
+        if(_hasNew && notifEnabled && _prevOrderIds.size > 0) { playBeep(); }
+        _prevOrderIds = new Set(_newOrderIds.filter(Boolean));
     try { var ru = await fetch(API + "/users"); allUsersCache = await ru.json(); } catch(e2) {}
     var available = orders.filter(function(o) { return o.status === "pendente" && !o.motoboy_id; });
     var mine = orders.filter(function(o) { return String(o.motoboy_id) === String(user.id); });
