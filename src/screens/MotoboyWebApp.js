@@ -536,7 +536,8 @@ async       function playBeep() {
         // New order notification detection
         var _newOrderIds = allOrdersCache.map(function(o){return o.id||o._id||o.orderId||'';});
         var _hasNew = _newOrderIds.some(function(id){return id && !_prevOrderIds.has(id);});
-        if(_hasNew && notifEnabled && _prevOrderIds.size > 0) { playBeep(); }
+        var _newPendentes = allOrdersCache.filter(function(o){ var oid = o.id||o._id||o.orderId||""; return oid && !_prevOrderIds.has(oid) && o.status === "pendente"; });
+        if(_newPendentes.length > 0 && notifEnabled && _prevOrderIds.size > 0) { playBeep(); }
         _prevOrderIds = new Set(_newOrderIds.filter(Boolean));
     try { var ru = await fetch(API + "/users"); allUsersCache = await ru.json(); } catch(e2) {}
     var available = orders.filter(function(o) { return o.status === "pendente" && !o.motoboy_id; });
