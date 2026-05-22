@@ -528,7 +528,7 @@ async       function playBeep() {
         } catch(e) {}
       }
 
-      function loadOrders() {
+      async function loadOrders() {
   try {
     var r = await fetch(API + "/orders");
     var orders = await r.json();
