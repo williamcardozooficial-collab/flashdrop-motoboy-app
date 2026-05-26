@@ -101,7 +101,7 @@ body{font-family:-apple-system,sans-serif;background:#1a1a1a;color:#fff;min-heig
 <body>
 <div class="header" style="position:relative">
 <button id="notif-toggle-btn" onclick="notifEnabled=!notifEnabled;this.textContent=notifEnabled?'\uD83D\uDD14':'\uD83D\uDD15';" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.1);color:#ffcc00;border:1px solid #555;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:bold;cursor:pointer;">🔔</button>
-<button class="logout-btn" onclick="doLogout()">Sair</button>
+<button id="sair-btn" class="logout-btn" onclick="doLogout()">Sair</button>
 <h1>FlashDrop Motoboy</h1>
 <div id="motoboy-name" style="color:#aaa;font-size:14px">Carregando...</div>
 <div id="motoboy-custom-id" style="font-size:12px;color:#ffcc00;font-weight:700;letter-spacing:1px;margin-top:2px"></div>
@@ -238,6 +238,7 @@ function updateStatusUI() {
   var badge = document.getElementById("status-badge");
   if (user.online) { badge.innerHTML = "&#x1F7E2; Online - toque para sair"; badge.className = "status-badge online"; }
   else { badge.innerHTML = "&#x26AB; Offline - toque para entrar"; badge.className = "status-badge offline"; }
+  var sairBtn = document.getElementById('sair-btn'); if(sairBtn) sairBtn.style.display = user.online ? 'none' : 'block';
 }
 
 async function toggleOnline() {
@@ -247,6 +248,7 @@ async function toggleOnline() {
     var resp = await fetch(API + "/users/" + user.id, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ online: newOnline }) });
     if (resp.ok) {
       user.online = newOnline;
+      var sairBtn2 = document.getElementById('sair-btn'); if(sairBtn2) sairBtn2.style.display = newOnline ? 'none' : 'block';
       if (newOnline) { _onlineAt = Date.now(); localStorage.setItem('_fd_onlineAt', _onlineAt); _autoOfflineTimer = setTimeout(autoOfflineCheck, AUTO_OFFLINE_MS); }
       else { _onlineAt = null; localStorage.removeItem('_fd_onlineAt'); if (_autoOfflineTimer) { clearTimeout(_autoOfflineTimer); _autoOfflineTimer = null; } }
       syncUser();
@@ -735,8 +737,9 @@ async function loadPromoAtiva() {
               var promoDiv = document.createElement("div");
               promoDiv.style.cssText = "background:#1a2a00;border:1px solid #4caf50;border-radius:10px;padding:12px;margin-top:10px;";
               promoDiv.innerHTML = "<div style='font-size:10px;color:#4caf50;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px'>&#x1F3AF; Promo\u00e7\u00e3o Ativa</div><div style='font-weight:700;color:#ffcc00;font-size:14px;margin-bottom:4px'>" + (promo.nome || "Promo\u00e7\u00e3o") + " <span style='float:right;color:#aaa;font-size:12px'>" + feitas + "/" + total + "</span></div><div style='background:#333;border-radius:4px;height:6px;margin-bottom:6px'><div style='background:#ffcc00;height:6px;border-radius:4px;width:" + pct + "%'></div></div><div style='font-size:12px;color:#ccc'>Faltam " + faltam + " entrega(s) para ganhar R$ " + parseFloat(promo.valor_premio || 0).toFixed(2) + "!</div>";
-              banner.style.display = "block";
-              banner.appendChild(promoDiv);
+              var oldPromo = document.getElementById('promo-ativa-div'); if(oldPromo) oldPromo.remove();
+              promoDiv.id = 'promo-ativa-div';
+              banner.insertAdjacentElement('afterend', promoDiv);
             } catch(e) {}
           }
 
