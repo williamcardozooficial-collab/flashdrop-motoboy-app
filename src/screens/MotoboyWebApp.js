@@ -131,6 +131,7 @@ body{font-family:-apple-system,sans-serif;background:#1a1a1a;color:#fff;min-heig
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
 <div id="mb-ref-code" style="font-size:22px;font-weight:900;color:#fff;letter-spacing:4px;flex:1;text-align:center;background:#222;border-radius:8px;padding:10px">--</div>
 <button onclick="copyRefCode()" style="padding:10px 14px;background:#ffcc00;border:none;border-radius:8px;color:#000;font-weight:700;cursor:pointer;font-size:13px">&#x1F4CB;</button>
+<button onclick="compartilharIndicacao()" style="width:100%;margin-top:10px;background:#25D366;color:white;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:700;cursor:pointer;">🔗 Compartilhar Link</button>
 </div>
 <div style="font-size:11px;color:#aaa;text-align:center;margin-bottom:10px">Compartilhe este codigo. Quem usar no cadastro gera comissoes para voce!</div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
@@ -706,6 +707,17 @@ function copyRefCode() {
   var code = window._mbRefCode || document.getElementById('mb-ref-code').textContent;
   if (navigator.clipboard) { navigator.clipboard.writeText(code).then(function() { alert('Copiado: ' + code); }); }
   else { alert('Seu codigo: ' + code); }
+}
+
+function compartilharIndicacao() {
+  var code = window._mbRefCode || '';
+  var url = 'https://flashdrop-frontend-six.vercel.app?ref=' + code;
+  var msg = 'Olá! Me cadastrei no FlashDrop e quero te indicar! 🛵\n\nClique no link abaixo para se cadastrar — meu código de indicação já estará preenchido automaticamente:\n\n' + url + '\n\nAo usar meu código você gera comissões para mim. Obrigado! 😊';
+  if (navigator.share) {
+    navigator.share({ title: 'FlashDrop - Meu Código de Indicação', text: msg });
+  } else {
+    navigator.clipboard.writeText(msg).then(function() { alert('Link copiado!'); });
+  }
 }
 
 async function loadWalletEvents() {
