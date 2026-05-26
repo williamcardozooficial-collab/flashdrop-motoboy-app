@@ -725,24 +725,26 @@ async function loadWalletEvents() {
 
 async function loadPromoAtiva() {
             try {
-              var r = await fetch(API + "/promotions/motoboy/" + user.id + "/active");
+              var r = await fetch(API + "/promotions/motoboy/" + user.id);
               if (!r.ok) return;
-              var promo = await r.json();
+              var promos = await r.json();
               var banner = document.getElementById("avisos-mb-banner");
-              if (!banner || !promo || !promo.id) return;
-              var total = parseInt(promo.meta_entregas || 0);
-              var feitas = parseInt(promo.entregas_feitas || 0);
-              var faltam = Math.max(total - feitas, 0);
-              var pct = total > 0 ? Math.round((feitas / total) * 100) : 0;
+              if (!banner) return;
+              var oldPromo = document.getElementById('promo-ativa-div');
+              if (oldPromo) oldPromo.remove();
+              if (!promos || !promos.length) return;
+              var html = promos.map(function(p) {
+                var pct = Math.min(100, Math.round((p.contagem / p.meta_entregas) * 100));
+                var restam = p.meta_entregas - p.contagem;
+                var msg = p.pago ? 'BONUS PAGO! Parabens!' : 'Faltam ' + restam + ' entrega(s) para ganhar R$ ' + parseFloat(p.valor_bonus).toFixed(2) + '!';
+                return '<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;align-items:center;"><strong style="color:#ffcc00;">Promocao: ' + p.nome + '</strong><span style="color:#aaa;font-size:12px;">' + p.contagem + '/' + p.meta_entregas + '</span></div><div style="background:#333;border-radius:6px;height:8px;margin:4px 0;"><div style="background:' + (p.pago ? '#66bb6a' : '#ffcc00') + ';width:' + pct + '%;height:8px;border-radius:6px;"></div></div><div style="color:' + (p.pago ? '#66bb6a' : '#fff') + ';font-size:12px;">' + msg + '</div></div>';
+              }).join('');
               var promoDiv = document.createElement("div");
-              promoDiv.style.cssText = "background:#1a2a00;border:1px solid #4caf50;border-radius:10px;padding:12px;margin-top:10px;";
-              promoDiv.innerHTML = "<div style='font-size:10px;color:#4caf50;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px'>&#x1F3AF; Promo\u00e7\u00e3o Ativa</div><div style='font-weight:700;color:#ffcc00;font-size:14px;margin-bottom:4px'>" + (promo.nome || "Promo\u00e7\u00e3o") + " <span style='float:right;color:#aaa;font-size:12px'>" + feitas + "/" + total + "</span></div><div style='background:#333;border-radius:4px;height:6px;margin-bottom:6px'><div style='background:#ffcc00;height:6px;border-radius:4px;width:" + pct + "%'></div></div><div style='font-size:12px;color:#ccc'>Faltam " + faltam + " entrega(s) para ganhar R$ " + parseFloat(promo.valor_premio || 0).toFixed(2) + "!</div>";
-              var oldPromo = document.getElementById('promo-ativa-div'); if(oldPromo) oldPromo.remove();
               promoDiv.id = 'promo-ativa-div';
+              promoDiv.innerHTML = '<div style="color:#66bb6a;font-size:12px;font-weight:bold;margin-bottom:6px;">PROMOCAO ATIVA</div>' + html;
               banner.insertAdjacentElement('afterend', promoDiv);
             } catch(e) {}
           }
-
           async function init() {
   document.getElementById("motoboy-name").textContent = user.name || "Motoboy";
   updateStatusUI();
