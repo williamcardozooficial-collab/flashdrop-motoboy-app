@@ -702,12 +702,6 @@ async function loadMbIndicacao() {
   } catch(e) {}
 }
 
-function copyRefCode() {
-  var code = window._mbRefCode || document.getElementById('mb-ref-code').textContent;
-  if (navigator.clipboard) { navigator.clipboard.writeText(code).then(function() { alert('Copiado: ' + code); }); }
-  else { alert('Seu codigo: ' + code); }
-}
-}
 
 async function loadWalletEvents() {
   try {
