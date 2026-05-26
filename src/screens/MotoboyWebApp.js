@@ -6,7 +6,7 @@ const getHTML = (user) => `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=h1.0,maximum-shcale=1.0">
 <title>FlashDrop - Motoboy</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -712,7 +712,7 @@ function copyRefCode() {
 function compartilharIndicacao() {
   var code = window._mbRefCode || '';
   var url = 'https://flashdrop-frontend-six.vercel.app?ref=' + code;
-  var msg = 'Olá! Me cadastrei no FlashDrop e quero te indicar! 🛵\n\nClique no link abaixo para se cadastrar — meu código de indicação já estará preenchido automaticamente:\n\n' + url + '\n\nAo usar meu código você gera comissões para mim. Obrigado! 😊';
+  var msg = 'Olá! Me cadastrei no FlashDrop e quero te indicar! 🛵\\n\\nClique no link abaixo para se cadastrar — meu código de indicação já estará preenchido automaticamente:\n\n' + url + '\n\nAo usar meu código você gera comissões para mim. Obrigado! 😊';
   if (navigator.share) {
     navigator.share({ title: 'FlashDrop - Meu Código de Indicação', text: msg });
   } else {
