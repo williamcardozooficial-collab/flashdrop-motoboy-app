@@ -8,7 +8,7 @@ const getHTML = (user) => `<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=h1.0,maximum-shcale=1.0">
 <title>FlashDrop - Motoboy</title>
-<style>h
+<style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{
   max-width:480px;margin:0 auto;font-family:-apple-system,sans-serif;background:#1a1a1a;color:#fff;min-height:100vh;padding-bottom:80px}
