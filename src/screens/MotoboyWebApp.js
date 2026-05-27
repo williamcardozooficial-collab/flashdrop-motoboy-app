@@ -11,7 +11,7 @@ const getHTML = (user) => `<!DOCTYPE html>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{
-  max-width:480px;margin:0 auto;font-family:-apple-system,sans-serif;background:#1a1a1a;color:#fff;min-height:100vh;padding-bottom:80px}
+  font-family:-apple-system,sans-serif;background:#1a1a1a;color:#fff;min-height:100vh;padding-bottom:80px}
 .header{background:#0f0f0f;padding:20px;text-align:center;border-bottom:2px solid #333}
 .header h1{font-size:24px;margin-bottom:5px}
 .status-badge{display:inline-block;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:600;margin-top:8px}
