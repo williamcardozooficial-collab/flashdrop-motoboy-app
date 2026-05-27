@@ -133,6 +133,7 @@ body{font-family:-apple-system,sans-serif;background:#1a1a1a;color:#fff;min-heig
 <button onclick="copyRefCode()" style="padding:10px 14px;background:#ffcc00;border:none;border-radius:8px;color:#000;font-weight:700;cursor:pointer;font-size:13px">&#x1F4CB;</button>
 </div>
 <div style="font-size:11px;color:#aaa;text-align:center;margin-bottom:10px">Compartilhe este codigo. Quem usar no cadastro gera comissoes para voce!</div>
+        <button onclick="indicarNovo()" style="width:100%;padding:12px;background:#4caf50;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px;">🔗 Indicar Novo Membro</button>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
 <div style="background:#222;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900;color:#ffcc00" id="mb-total-indicados">0</div><div style="font-size:10px;color:#aaa">Total Indicados</div></div>
 <div style="background:#222;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900;color:#4caf50" id="mb-total-ganhos">R$ 0,00</div><div style="font-size:10px;color:#aaa">Ganho 30 dias</div></div>
@@ -707,6 +708,12 @@ function copyRefCode() {
   if (navigator.clipboard) { navigator.clipboard.writeText(code).then(function() { alert('Copiado: ' + code); }); }
   else { alert('Seu codigo: ' + code); }
 }
+function indicarNovo() {
+  var code = window._mbRefCode || '';
+  var url = 'https://flashdrop-frontend-six.vercel.app/register.html' + (code ? '?ref=' + code : '');
+  window.open(url, '_blank');
+}
+
 
 async function loadWalletEvents() {
   try {
