@@ -6,12 +6,11 @@ const getHTML = (user) => `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=h1.0,maximum-shcale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
 <title>FlashDrop - Motoboy</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:-apple-system,sans-serif;background:#1a1a1a;color:#fff;min-height:100vh;padding-bottom:80px}
+body{font-family:-apple-system,sans-serif;background:#1a1a1a;color:#fff;min-height:100vh;padding-bottom:80px}
 .header{background:#0f0f0f;padding:20px;text-align:center;border-bottom:2px solid #333}
 .header h1{font-size:24px;margin-bottom:5px}
 .status-badge{display:inline-block;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:600;margin-top:8px}
@@ -703,6 +702,11 @@ async function loadMbIndicacao() {
   } catch(e) {}
 }
 
+function copyRefCode() {
+  var code = window._mbRefCode || document.getElementById('mb-ref-code').textContent;
+  if (navigator.clipboard) { navigator.clipboard.writeText(code).then(function() { alert('Copiado: ' + code); }); }
+  else { alert('Seu codigo: ' + code); }
+}
 
 async function loadWalletEvents() {
   try {
