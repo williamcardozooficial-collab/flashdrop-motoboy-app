@@ -516,31 +516,31 @@ function updateTabBadge(id, count) {
   if (count > 0) { el.textContent = count; el.style.display = 'inline-block'; } else { el.style.display = 'none'; }
 }
 
-async       var _beepInterval = null;
-      function playBeep() {
-  try {
-    var ctx = new (window.AudioContext || window.webkitAudioContext)();
-    function bip(t) {
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = 'sine'; osc.frequency.value = 880;
-      gain.gain.setValueAtTime(0.3, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-      osc.start(t); osc.stop(t + 0.2);
-    }
-    var now = ctx.currentTime;
-    bip(now); bip(now + 0.3); bip(now + 0.6);
-  } catch(e) {}
-}
-function startBeepLoop() {
-  if (_beepInterval) return;
-  playBeep();
-  _beepInterval = setInterval(function() { if (notifEnabled) playBeep(); }, 4000);
-}
-function stopBeepLoop() {
-  if (_beepInterval) { clearInterval(_beepInterval); _beepInterval = null; }
-}
+            var _beepInterval = null;
+            function playBeep() {
+        try {
+          var ctx = new (window.AudioContext || window.webkitAudioContext)();
+          function bip(t) {
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.type = 'sine'; osc.frequency.value = 880;
+            gain.gain.setValueAtTime(0.3, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+            osc.start(t); osc.stop(t + 0.2);
+          }
+          var now = ctx.currentTime;
+          bip(now); bip(now + 0.3); bip(now + 0.6);
+        } catch(e) {}
+      }
+      function startBeepLoop() {
+        if (_beepInterval) return;
+        playBeep();
+        _beepInterval = setInterval(function() { if (notifEnabled) playBeep(); }, 4000);
+      }
+      function stopBeepLoop() {
+        if (_beepInterval) { clearInterval(_beepInterval); _beepInterval = null; }
+      }
 
       async function loadOrders() {
   try {
@@ -550,7 +550,7 @@ function stopBeepLoop() {
         // New order notification detection
         var _newOrderIds = allOrdersCache.map(function(o){return o.id||o._id||o.orderId||'';});
         var _hasNew = _newOrderIds.some(function(id){return id && !_prevOrderIds.has(id);});
-        var _hasNewOrders = allOrdersCache.some(function(o){ var oid = String(o.id||o._id||o.orderId||""); return oid && !_prevOrderIds.has(oid); }); if(_hasNewOrders && notifEnabled && _prevOrderIds.size > 0) { startBeepLoop(); } else { stopBeepLoop(); }
+        var _hasNewOrders = allOrdersCache.some(function(o){ var oid = String(o.id||o._id||o.orderId||""); return oid && !_prevOrderIds.has(oid); }); if(_hasNewOrders && notifEnabled && _prevOrderIds.size > 0) { startBeepLoop(); }
         _prevOrderIds = new Set(_newOrderIds.filter(Boolean));
     try { var ru = await fetch(API + "/users"); allUsersCache = await ru.json(); } catch(e2) {}
     var available = orders.filter(function(o) { return o.status === "pendente" && !o.motoboy_id; });
@@ -561,7 +561,7 @@ function stopBeepLoop() {
 
     var avDiv = document.getElementById("available-orders"); avDiv.innerHTML = "";
     var doneDiv = document.getElementById("done-orders"); doneDiv.innerHTML = "";
-    if (available.length === 0) { avDiv.innerHTML = '<div class="empty">Nenhum pedido disponivel</div>'; }
+    if (available.length === 0) { avDiv.innerHTML = '<div class="empty">Nenhum pedido disponivel</div>'; stopBeepLoop(); }
     else { available.forEach(function(o) { avDiv.appendChild(makeOrderCard(o, "pending")); }); }
 
     var myDiv = document.getElementById("my-orders"); myDiv.innerHTML = "";
@@ -723,7 +723,7 @@ function indicarNovo() {
   var code = window._mbRefCode || '';
   var url = 'https://flashdrop-frontend-six.vercel.app/register.html' + (code ? '?ref=' + code : '');
   if (navigator.share) {
-    navigator.share({ title: 'FlashDrop Motoboy', text: 'Cadastre-se no FlashDrop usando meu codigo de indicacao!', url: url }).catch(function() {});
+    navigator.share({ title: 'FlashDrop Motoboy', text: 'Cadastre-se no FlashDrop!', url: url }).catch(function() {});
   } else {
     window.open(url, '_blank');
   }
