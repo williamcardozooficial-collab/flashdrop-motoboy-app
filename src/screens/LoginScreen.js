@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Linking } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API = "https://flashdrop-backend-production.up.railway.app";
@@ -52,6 +52,12 @@ export default function LoginScreen({ onLogin }) {
           <TouchableOpacity style={[s.btn, loading && s.btnOff]} onPress={handleLogin} disabled={loading}>
             {loading ? <ActivityIndicator color="#000" /> : <Text style={s.btnTxt}>Entrar</Text>}
           </TouchableOpacity>
+        <View style={s.registerRow}>
+          <Text style={s.registerTxt}>Não tem conta? </Text>
+          <TouchableOpacity onPress={() => Linking.openURL('https://flashdrop-frontend-six.vercel.app/register.html')}>
+            <Text style={s.registerLink}>Cadastre-se aqui</Text>
+          </TouchableOpacity>
+        </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -70,4 +76,7 @@ const s = StyleSheet.create({
   btn: { backgroundColor: "#667eea", borderRadius: 10, padding: 16, alignItems: "center", marginTop: 24 },
   btnOff: { backgroundColor: "#ccc" },
   btnTxt: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  registerRow: { flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 20 },
+  registerTxt: { fontSize: 14, color: "#666" },
+  registerLink: { fontSize: 14, color: "#667eea", fontWeight: "700" },
 });
