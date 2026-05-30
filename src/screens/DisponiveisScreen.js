@@ -120,7 +120,7 @@ const entrega = pedido.delivery_address || pedido.endereco_entrega || 'N/D';
 const valor = parseFloat(pedido.motoboy_fee || pedido.valor_motoboy || 0);
 Alert.alert(
 'Aceitar pedido?',
-'Coleta: ' + coleta + '\nEntrega: ' + entrega + '\nValor: R$ ' + valor.toFixed(2).replace('.', ','),
+'Coleta: ' + coleta + '\nEntrega: ' + entrega + '\nPagamento: ' + ({dinheiro:'💵 Dinheiro', pix:'⚡ PIX', maquina:'💳 Máquina'}[pedido.tipo_pagamento] || '💳 Máquina') + '\nValor: R$ ' + valor.toFixed(2).replace('.', ','),
 [
 { text: 'Nao', style: 'cancel' },
 {
@@ -170,6 +170,11 @@ return (
 {dist ? <Text style={s.dist}>{dist}</Text> : null}
 </View>
 <Text style={s.addr} numberOfLines={1}>Entrega: {item.delivery_address || item.endereco_entrega || 'N/D'}</Text>
+<View style={s.pagRow}>
+{item.tipo_pagamento === 'dinheiro' && <Text style={s.pagDinheiro}>💵 Dinheiro</Text>}
+{item.tipo_pagamento === 'pix' && <Text style={s.pagPix}>⚡ PIX</Text>}
+{(item.tipo_pagamento === 'maquina' || !item.tipo_pagamento) && <Text style={s.pagMaquina}>💳 Máquina</Text>}
+</View>
 <View style={s.cardBot}>
 <Text style={s.valor}>R$ {valor.toFixed(2).replace('.', ',')}</Text>
 <TouchableOpacity style={s.aceitarBtn} onPress={() => aceitarPedido(item)}>
@@ -263,4 +268,8 @@ offT: { fontSize: 18, color: '#666', fontWeight: '600', marginBottom: 8 },
 offSub: { fontSize: 14, color: '#aaa', textAlign: 'center' },
 logoutBtn: { margin: 12, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#ddd', alignItems: 'center', backgroundColor: '#fff' },
 logoutTxt: { color: '#999', fontSize: 14 },
+pagRow: { flexDirection: 'row', marginTop: 8, marginBottom: 2 },
+pagDinheiro: { fontSize: 12, fontWeight: '700', color: '#fff', backgroundColor: '#16a34a', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+pagPix: { fontSize: 12, fontWeight: '700', color: '#fff', backgroundColor: '#7c3aed', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+pagMaquina: { fontSize: 12, fontWeight: '700', color: '#fff', backgroundColor: '#2563eb', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
 });
