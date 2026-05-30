@@ -396,7 +396,25 @@ function makeOrderCard(o, cardType) {
   var clienteVisivel = (o.status === "coletado" || o.status === "no_cliente");
   if (clienteVisivel) {
     if (o.nome_cliente) card.appendChild(makeInfoRow("&#x1F464; Cliente", o.nome_cliente));
-    if (o.telefone_cliente) card.appendChild(makeInfoRow("&#x1F4F1; Tel Cliente", o.telefone_cliente));
+    if (o.telefone_cliente) {
+  var cliRow = document.createElement("div"); cliRow.className = "info-row";
+  var cliLbl = document.createElement("span"); cliLbl.className = "info-label"; cliLbl.innerHTML = "&#x1F4F1; Tel Cliente";
+  var cliValWrap = document.createElement("span"); cliValWrap.style.cssText = "display:flex;align-items:center;gap:8px;justify-content:flex-end;";
+  var cliTelVal = document.createElement("span"); cliTelVal.className = "info-value"; cliTelVal.textContent = o.telefone_cliente;
+  cliValWrap.appendChild(cliTelVal);
+  var cliStatuses = ["coletado","no_cliente"];
+  if (cliStatuses.indexOf(o.status) !== -1) {
+    var waCliBtn = document.createElement("a");
+    var cliNum = o.telefone_cliente.replace(/\D/g,"");
+    waCliBtn.href = "https://wa.me/55" + cliNum;
+    waCliBtn.target = "_blank";
+    waCliBtn.style.cssText = "display:inline-flex;align-items:center;gap:4px;background:#25D366;color:#fff;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;";
+    waCliBtn.innerHTML = "&#x1F4AC; WhatsApp";
+    cliValWrap.appendChild(waCliBtn);
+  }
+  cliRow.appendChild(cliLbl); cliRow.appendChild(cliValWrap);
+  card.appendChild(cliRow);
+}
     if (o.endereco_entrega) {
       card.appendChild(makeInfoRow("&#x1F4CD; Entrega", o.endereco_entrega + (o.complemento_entrega ? " - " + o.complemento_entrega : "")));
       var navEntrega = makeNavBtns("Entrega", o.endereco_entrega);
@@ -416,7 +434,25 @@ function makeOrderCard(o, cardType) {
     var privDiv2 = document.createElement("div"); privDiv2.style = "font-size:11px;color:#ff9500;font-style:italic;margin:4px 0;"; privDiv2.innerHTML = "&#x1F512; Dados do cliente liberados ao coletar."; card.appendChild(privDiv2);
   }
 
-  if (cardType === "mine" && o.telefone_loja) card.appendChild(makeInfoRow("&#x1F4DE; Tel Loja", o.telefone_loja));
+  if (cardType === "mine" && o.telefone_loja) {
+  var lojaRow = document.createElement("div"); lojaRow.className = "info-row";
+  var lojaLbl = document.createElement("span"); lojaLbl.className = "info-label"; lojaLbl.innerHTML = "&#x1F4DE; Tel Loja";
+  var lojaValWrap = document.createElement("span"); lojaValWrap.style.cssText = "display:flex;align-items:center;gap:8px;justify-content:flex-end;";
+  var lojaTelVal = document.createElement("span"); lojaTelVal.className = "info-value"; lojaTelVal.textContent = o.telefone_loja;
+  lojaValWrap.appendChild(lojaTelVal);
+  var lojaStatuses = ["aceito","na_loja","coletado","no_cliente"];
+  if (lojaStatuses.indexOf(o.status) !== -1) {
+    var waLojaBtn = document.createElement("a");
+    var lojaNum = o.telefone_loja.replace(/\D/g,"");
+    waLojaBtn.href = "https://wa.me/55" + lojaNum;
+    waLojaBtn.target = "_blank";
+    waLojaBtn.style.cssText = "display:inline-flex;align-items:center;gap:4px;background:#25D366;color:#fff;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;";
+    waLojaBtn.innerHTML = "&#x1F4AC; WhatsApp";
+    lojaValWrap.appendChild(waLojaBtn);
+  }
+  lojaRow.appendChild(lojaLbl); lojaRow.appendChild(lojaValWrap);
+  card.appendChild(lojaRow);
+}
 
   var vMotoboy = parseFloat(o.valor_motoboy || 0);
   var isDinheiro = o.tipo_pagamento === "dinheiro";
