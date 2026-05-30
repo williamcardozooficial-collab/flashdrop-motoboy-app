@@ -775,19 +775,33 @@ function indicarNovo() {
 
 
 async function loadWalletEvents() {
-  try {
-    var resp = await fetch(API + '/users/' + user.id + '/wallet-events'); var events = await resp.json();
-    var listEl = document.getElementById('mb-wallet-events-list'); if (!listEl) return;
-    if (!events || !events.length) { listEl.innerHTML = '<p style="color:#aaa;font-size:12px;text-align:center">Nenhum evento nas ultimas 24h</p>'; return; }
-    var tipoLabel = { corrida: '&#x1F699; Corrida', bonus_promo: '&#x1F389; Bonus Promo', bonus_indicacao: '&#x1F91D; Bonus Indicacao' };
-    listEl.innerHTML = events.map(function(ev) {
-      var dt = new Date(ev.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-      var label = tipoLabel[ev.tipo] || ev.tipo;
-      var valor = parseFloat(ev.valor || 0).toFixed(2).replace('.', ',');
-      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #333"><div><div style="font-size:13px">' + label + '</div><div style="font-size:11px;color:#aaa">' + dt + ' - ' + (ev.descricao || '') + '</div></div><div style="color:#4caf50;font-weight:bold;font-size:14px">+R$ ' + valor + '</div></div>';
-    }).join('');
-  } catch(e) {}
+try {
+var resp = await fetch(API + '/users/' + user.id + '/wallet-events'); var events = await resp.json();
+var listEl = document.getElementById('mb-wallet-events-list'); if (!listEl) return;
+if (!events || !events.length) { listEl.innerHTML = '<p style="color:#aaa;font-size:12px;text-align:center">Nenhum evento nas ultimas 24h</p>'; return; }
+var tipoConfig = {
+corrida: { label: '&#x1F6F5; Corrida (PIX/Maquina)', sinal: '+', cor: '#4caf50' },
+cobranca_cliente: { label: '&#x1F4B5; Cobrado do Cliente', sinal: '-', cor: '#f44336' },
+pagamento_loja: { label: '&#x1F3EA; Pagou a Loja', sinal: '+', cor: '#4caf50' },
+bonus_promo: { label: '&#x1F389; Bonus Promocao', sinal: '+', cor: '#4caf50' },
+bonus_indicacao: { label: '&#x1F91D; Bonus Indicacao', sinal: '+', cor: '#4caf50' },
+taxa_extra: { label: '&#x1F327; Taxa Extra (Chuva/Noturna)', sinal: '+', cor: '#4caf50' },
+comissao_indicacao_loja: { label: '&#x1F3EA; Comissao Indicacao Loja', sinal: '+', cor: '#4caf50' }
+};
+listEl.innerHTML = events.map(function(ev) {
+var dt = new Date(ev.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+var cfg = tipoConfig[ev.tipo] || { label: ev.tipo, sinal: '+', cor: '#4caf50' };
+var valor = parseFloat(ev.valor || 0).toFixed(2).replace('.', ',');
+var valorStr = cfg.sinal + 'R$ ' + valor;
+return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #333">' +
+'<div style="flex:1"><div style="font-size:13px;font-weight:600;color:#fff">' + cfg.label + '</div>' +
+'<div style="font-size:11px;color:#888;margin-top:2px">' + dt + (ev.descricao ? ' &mdash; ' + ev.descricao : '') + '</div></div>' +
+'<div style="font-size:15px;font-weight:800;color:' + cfg.cor + ';white-space:nowrap;margin-left:10px">' + valorStr + '</div>' +
+'</div>';
+}).join('');
+} catch(e) {}
 }
+
 
 async function loadPromoAtiva() {
             try {
