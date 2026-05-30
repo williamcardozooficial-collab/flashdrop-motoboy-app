@@ -387,6 +387,7 @@ function makeOrderCard(o, cardType) {
   var lojaDisplay = o.loja_name || _lojaUser.name || o.loja_user || '-';
   var lojaId = _lojaUser.custom_id || '';
   card.appendChild(makeInfoRow("&#x1F3EA; Loja", lojaDisplay + (lojaId ? ' - ' + lojaId : '')));
+if (o.distancia) card.appendChild(makeInfoRow("&#x1F4CD; Distancia", parseFloat(o.distancia).toFixed(1) + " km"));
 
   if (o.endereco_coleta) {
     card.appendChild(makeInfoRow("&#x1F4E6; Coleta", o.endereco_coleta + (o.complemento_coleta ? " - " + o.complemento_coleta : "")));
