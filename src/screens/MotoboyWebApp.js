@@ -38,10 +38,10 @@ body{font-family:-apple-system,sans-serif;background:#1a1a1a;color:#fff;min-heig
 .badge-retornado{background:#ff9500;color:#000}
 .info-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #3a3a3a;font-size:14px}
 .info-row:last-of-type{border:none}
-.info-label{color:#999}
+.info-label{color:#fff}
 .info-value{font-weight:500;color:#fff;text-align:right;max-width:60%}
 .progress-steps{display:flex;justify-content:space-between;margin:12px 0;padding:10px;background:#1a1a1a;border-radius:8px}
-.step{text-align:center;flex:1;font-size:10px;color:#555}
+.step{text-align:center;flex:1;font-size:10px;color:#ccc}
 .step.done{color:#28a745}
 .step.active{color:#ffcc00;font-weight:bold}
 .timer-box{display:flex;align-items:center;gap:8px;background:#1a1a1a;border:1px solid #ffa500;border-radius:8px;padding:8px 12px;margin:10px 0;font-size:13px;color:#ffa500}
@@ -63,7 +63,7 @@ body{font-family:-apple-system,sans-serif;background:#1a1a1a;color:#fff;min-heig
 .btn-nav-gmaps{background:#4285F4;color:#fff}
 .btn-nav-waze{background:#33CCFF;color:#000}
 .btn-nav-group{margin:8px 0 4px;display:flex;flex-wrap:wrap;gap:4px}
-.nav-label{font-size:11px;color:#888;margin-bottom:2px}
+.nav-label{font-size:11px;color:#ccc;margin-bottom:2px}
 .status-badge.online{cursor:pointer;box-shadow:0 0 8px rgba(40,167,69,0.5)}
 .status-badge.offline{cursor:pointer}
 .confirm-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:2000;display:flex;align-items:center;justify-content:center}
@@ -103,7 +103,7 @@ body{font-family:-apple-system,sans-serif;background:#1a1a1a;color:#fff;min-heig
 <button id="notif-toggle-btn" onclick="notifEnabled=!notifEnabled;this.textContent=notifEnabled?'\uD83D\uDD14':'\uD83D\uDD15';" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.1);color:#ffcc00;border:1px solid #555;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:bold;cursor:pointer;">🔔</button>
 <button id="sair-btn" class="logout-btn" onclick="doLogout()">Sair</button>
 <h1>FlashDrop Motoboy</h1>
-<div id="motoboy-name" style="color:#aaa;font-size:14px">Carregando...</div>
+<div id="motoboy-name" style="color:#ccc;font-size:14px">Carregando...</div>
 <div id="motoboy-custom-id" style="font-size:12px;color:#ffcc00;font-weight:700;letter-spacing:1px;margin-top:2px"></div>
 <span class="status-badge offline" id="status-badge" onclick="toggleOnline()" style="cursor:pointer;user-select:none;" title="Clique para alternar">Offline</span>
 </div>
@@ -353,13 +353,13 @@ function buildTimeline(o) {
   var wrap = document.createElement('div');
   wrap.style.cssText = 'margin-top:10px;border-top:1px solid #3a3a3a;padding-top:8px';
   var title = document.createElement('div');
-  title.style.cssText = 'font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px';
+  title.style.cssText = 'font-size:10px;color:#ccc;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px';
   title.textContent = 'Historico';
   wrap.appendChild(title);
   events.forEach(function(e) {
     var row = document.createElement('div'); row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:12px';
     var icon = document.createElement('span'); icon.style.fontSize = '13px'; icon.innerHTML = e.icon;
-    var label = document.createElement('span'); label.style.cssText = 'color:#aaa;flex:1'; label.textContent = e.label;
+    var label = document.createElement('span'); label.style.cssText = 'color:#fff;flex:1'; label.textContent = e.label;
     var time = document.createElement('span'); time.style.cssText = 'color:#ffcc00;font-weight:600;white-space:nowrap;font-size:11px'; time.textContent = fmtDt(e.ts);
     row.appendChild(icon); row.appendChild(label); row.appendChild(time); wrap.appendChild(row);
   });
