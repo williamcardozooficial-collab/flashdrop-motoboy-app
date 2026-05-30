@@ -420,6 +420,14 @@ function makeOrderCard(o, cardType) {
 
   var vMotoboy = parseFloat(o.valor_motoboy || 0);
   var isDinheiro = o.tipo_pagamento === "dinheiro";
+  // Badge de tipo de pagamento
+  var pagLabels = { dinheiro: '&#x1F4B5; Dinheiro', pix: '&#x26A1; PIX', maquina: '&#x1F4B3; Maquina' };
+  var pagColors = { dinheiro: '#16a34a', pix: '#7c3aed', maquina: '#2563eb' };
+  var tipoPag = o.tipo_pagamento || 'maquina';
+  var pagDiv = document.createElement('div');
+  pagDiv.style.cssText = 'display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;color:#fff;background:' + (pagColors[tipoPag] || '#555') + ';margin:6px 0 8px;';
+  pagDiv.innerHTML = pagLabels[tipoPag] || tipoPag;
+  card.appendChild(pagDiv);
   card.appendChild(makeInfoRow(isDinheiro ? "&#x1F4B0; Ganho Liquido" : "&#x1F4B0; Ganho", "R$ " + vMotoboy.toFixed(2), true));
 
   if (cardType === "mine" && isDinheiro) {
