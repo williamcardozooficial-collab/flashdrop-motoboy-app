@@ -174,6 +174,7 @@ return (
 {item.tipo_pagamento === 'dinheiro' && <Text style={s.pagDinheiro}>💵 Dinheiro</Text>}
 {item.tipo_pagamento === 'pix' && <Text style={s.pagPix}>⚡ PIX</Text>}
 {(item.tipo_pagamento === 'maquina' || !item.tipo_pagamento) && <Text style={s.pagMaquina}>💳 Máquina</Text>}
+        {item.tipo_pagamento === 'cartao_aproximacao' && <Text style={s.pagCartaoAprox}>💳 Cartão Aprox.</Text>}
 </View>
 <View style={s.cardBot}>
 <Text style={s.valor}>R$ {valor.toFixed(2).replace('.', ',')}</Text>
@@ -272,4 +273,5 @@ pagRow: { flexDirection: 'row', marginTop: 8, marginBottom: 2 },
 pagDinheiro: { fontSize: 12, fontWeight: '700', color: '#fff', backgroundColor: '#16a34a', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
 pagPix: { fontSize: 12, fontWeight: '700', color: '#fff', backgroundColor: '#7c3aed', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
 pagMaquina: { fontSize: 12, fontWeight: '700', color: '#fff', backgroundColor: '#2563eb', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+  pagCartaoAprox: { fontSize: 12, fontWeight: '700', color: '#fff', backgroundColor: '#dc2626', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
 });
