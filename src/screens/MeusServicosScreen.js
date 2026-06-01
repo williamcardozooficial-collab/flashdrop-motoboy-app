@@ -275,6 +275,10 @@ export default function MeusServicosScreen({ user }) {
                {order.obs_entrega_loja ? (
                   <View style={s.row}><Text style={s.lbl}>Obs. Entrega</Text><Text style={[s.val, {color:'#f97316', fontWeight:'600'}]}>{order.obs_entrega_loja}</Text></View>
                ) : null}
+ </>
+               ) : (
+                                 <Text style={s.privado}>🔒 Dados do cliente liberados ao coletar o pedido.</Text>
+               )}
  {order.tipo_pagamento === 'cartao_aproximacao' && (
                        <View style={s.cobranca}>
                          <Text style={s.cobrancaLbl}>💳 COBRAR DO CLIENTE (CARTÃO APROX.)</Text>
@@ -284,10 +288,6 @@ export default function MeusServicosScreen({ user }) {
  </Text>
    </View>
                    )}
- </>
-               ) : (
-                                 <Text style={s.privado}>🔒 Dados do cliente liberados ao coletar o pedido.</Text>
-               )}
 
 {order.telefone_loja && <View style={s.row}><Text style={s.lbl}>Tel Loja</Text><Text style={s.val}>{order.telefone_loja}</Text></View>}
                <View style={s.row}>
