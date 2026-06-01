@@ -6,6 +6,7 @@ import {
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import * as Notifications from 'expo-notifications';
 
 const API_BASE = 'https://flashdrop-backend-production.up.railway.app';
 
@@ -18,6 +19,8 @@ const [loading, setLoading] = useState(true);
 const [refreshing, setRefreshing] = useState(false);
 const [toggling, setToggling] = useState(false);
 const [saldo, setSaldo] = useState(0);
+  const [notifAtiva, setNotifAtiva] = React.useState(false);
+  const prevCountRef = React.useRef(0);
 const pollRef = useRef(null);
 const userRef = useRef(null);
 const navigation = useNavigation();
@@ -25,6 +28,8 @@ const navigation = useNavigation();
 useEffect(() => {
 initUser();
 requestLocation();
+    AsyncStorage.getItem('flashdrop_notif').then(v=>{ if(v==='1') setNotifAtiva(true); });
+    Notifications.setNotificationHandler({ handleNotification: async () => ({ shouldShowAlert: true, shouldPlaySound: true, shouldSetBadge: false }) });
 return () => { if (pollRef.current) clearInterval(pollRef.current); };
 }, []);
 
@@ -48,6 +53,38 @@ if (pollRef.current) clearInterval(pollRef.current);
 pollRef.current = setInterval(() => fetchPedidosWithUser(userRef.current), 10000);
 };
 
+const ativarNotificacoes = async () => {
+  try {
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status === 'granted') {
+      setNotifAtiva(true);
+      await AsyncStorage.setItem('flashdrop_notif', '1');
+    } else {
+      Alert.alert('Permissão negada', 'Para receber notificações de novos pedidos, permita notificações nas configurações do dispositivo.');
+    }
+  } catch(e) {}
+};
+
+const desativarNotificacoes = async () => {
+  setNotifAtiva(false);
+  await AsyncStorage.setItem('flashdrop_notif', '0');
+};
+
+const dispararNotifNovoPedido = async (qtd) => {
+  try {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: '📦 Novo pedido disponível!',
+        body: qtd > 1 ? qtd + ' pedidos aguardando aceite' : '1 pedido aguardando aceite',
+        sound: true,
+        priority: Notifications.AndroidNotificationPriority.MAX,
+        vibrate: [0, 250, 250, 250],
+      },
+      trigger: null,
+    });
+  } catch(e) {}
+};
+
 const requestLocation = async () => {
 try {
 const { status } = await Location.requestForegroundPermissionsAsync();
@@ -67,6 +104,13 @@ const data = await res.json();
 const list = Array.isArray(data) ? data : (data.orders || []);
 const avail = list.filter(o => o.status === 'pendente' && !o.motoboy_id);
 setPedidos(avail);
+    if (notifAtiva) {
+      const newCount = avail.length;
+      if (newCount > prevCountRef.current) {
+        dispararNotifNovoPedido(newCount);
+      }
+      prevCountRef.current = newCount;
+    }
 
 const uRes = await fetch(API_BASE + '/users/' + u.id, { headers });
 const uData = await uRes.json();
@@ -204,6 +248,12 @@ return (
 : <Text style={s.toggleTxt}>{online ? 'Ficar Offline' : 'Ficar Online'}</Text>}
 </TouchableOpacity>
 </View>
+        <TouchableOpacity
+          style={[s.notifBtn, { backgroundColor: notifAtiva ? '#dc2626' : '#374151' }]}
+          onPress={notifAtiva ? desativarNotificacoes : ativarNotificacoes}
+        >
+          <Text style={s.notifTxt}>{notifAtiva ? '🔔 Notif. Ativa' : '🔕 Notif. Desativa'}</Text>
+        </TouchableOpacity>
 </View>
 <View style={s.info}>
 <Text style={s.infoTxt}>Ola, {nome}!</Text>
@@ -274,4 +324,6 @@ pagDinheiro: { fontSize: 12, fontWeight: '700', color: '#fff', backgroundColor: 
 pagPix: { fontSize: 12, fontWeight: '700', color: '#fff', backgroundColor: '#7c3aed', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
 pagMaquina: { fontSize: 12, fontWeight: '700', color: '#fff', backgroundColor: '#2563eb', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
   pagCartaoAprox: { fontSize: 12, fontWeight: '700', color: '#fff', backgroundColor: '#dc2626', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+  notifBtn: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16, marginLeft: 8 },
+  notifTxt: { color: '#fff', fontSize: 11, fontWeight: '700' },
 });
