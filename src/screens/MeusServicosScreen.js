@@ -275,9 +275,9 @@ export default function MeusServicosScreen({ user }) {
                {order.obs_entrega_loja ? (
                   <View style={s.row}><Text style={s.lbl}>Obs. Entrega</Text><Text style={[s.val, {color:'#f97316', fontWeight:'600'}]}>{order.obs_entrega_loja}</Text></View>
                ) : null}
- {order.tipo_pagamento === 'dinheiro' && (
+ {order.tipo_pagamento === 'cartao_aproximacao' && (
                        <View style={s.cobranca}>
-                         <Text style={s.cobrancaLbl}>💵 Cobrar do Cliente</Text>
+                         <Text style={s.cobrancaLbl}>💳 COBRAR DO CLIENTE (CARTÃO APROX.)</Text>
                          <Text style={s.cobrancaVal}>R$ {(parseFloat(order.valor_pedido || 0) + parseFloat(order.valor_total || 0)).toFixed(2)}</Text>
                        <Text style={s.cobrancaSub}>
                            Produto: R$ {parseFloat(order.valor_pedido || 0).toFixed(2)} + Entrega: R$ {parseFloat(order.valor_total || 0).toFixed(2)}
@@ -291,6 +291,15 @@ export default function MeusServicosScreen({ user }) {
 
 {order.telefone_loja && <View style={s.row}><Text style={s.lbl}>Tel Loja</Text><Text style={s.val}>{order.telefone_loja}</Text></View>}
                <View style={s.row}>
+               {order.tipo_pagamento === 'cartao_aproximacao' ? (
+                  <View style={{flexDirection:'row', marginBottom:8}}>
+                    <Text style={s.pagAproxBadge}>💳 Cartão Aprox. (Cobrar do Cliente)</Text>
+                  </View>
+               ) : order.tipo_pagamento ? (
+                  <View style={{flexDirection:'row', marginBottom:8}}>
+                    <Text style={s.pagBadge}>{order.tipo_pagamento === 'pix' ? '⚡ PIX' : order.tipo_pagamento === 'maquina' ? '💳 Máquina' : '💵 Dinheiro'}</Text>
+                  </View>
+               ) : null}
                 <Text style={s.lbl}>Ganho Liquido</Text>
                  <Text style={[s.val, { color: '#ffcc00', fontWeight: '700' }]}>R$ {parseFloat(order.valor_motoboy || 0).toFixed(2)}</Text>
   </View>
@@ -339,7 +348,7 @@ const s = StyleSheet.create({
     navWaze: { flex: 1, backgroundColor: '#33CCFF', borderRadius: 8, padding: 10, alignItems: 'center' },
     navTxt: { color: '#fff', fontSize: 12, fontWeight: '700' },
     navTxtDark: { color: '#000', fontSize: 12, fontWeight: '700' },
-    cobranca: { backgroundColor: '#1a2a00', borderWidth: 2, borderColor: '#ffcc00', borderRadius: 10, padding: 12, marginVertical: 8, alignItems: 'center' },
+    cobranca: { backgroundColor: '#1a1000', borderWidth: 2, borderColor: '#ffcc00', borderRadius: 10, padding: 12, marginVertical: 8, alignItems: 'center' },
     cobrancaLbl: { fontSize: 11, color: '#ffcc00', fontWeight: '700', textTransform: 'uppercase', marginBottom: 4 },
     cobrancaVal: { fontSize: 22, fontWeight: '900', color: '#ffcc00' },
     cobrancaSub: { fontSize: 11, color: '#aaa', marginTop: 4 },
@@ -361,4 +370,6 @@ const s = StyleSheet.create({
     obsBlock: { backgroundColor: 'rgba(249,115,22,0.1)', borderLeftWidth: 3, borderLeftColor: '#f97316', padding: 10, marginTop: 6, marginBottom: 4, borderRadius: 6 },
     obsLbl: { color: '#f97316', fontSize: 12, fontWeight: '700', marginBottom: 4 },
     obsVal: { color: '#fff', fontSize: 13, lineHeight: 20 },
+  pagAproxBadge: { fontSize: 12, fontWeight: '700', color: '#fff', backgroundColor: '#dc2626', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20 },
+  pagBadge: { fontSize: 12, fontWeight: '700', color: '#fff', backgroundColor: '#374151', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20 },
 });
