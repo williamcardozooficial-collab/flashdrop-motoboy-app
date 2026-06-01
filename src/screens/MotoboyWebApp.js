@@ -458,13 +458,22 @@ if (o.distancia) card.appendChild(makeInfoRow("&#x1F4CD; Distancia", parseFloat(
   var vMotoboy = parseFloat(o.valor_motoboy || 0);
   var isDinheiro = o.tipo_pagamento === "dinheiro";
   // Badge de tipo de pagamento
-  var pagLabels = { dinheiro: '&#x1F4B5; Dinheiro', pix: '&#x26A1; PIX', maquina: '&#x1F4B3; Maquina' };
-  var pagColors = { dinheiro: '#16a34a', pix: '#7c3aed', maquina: '#2563eb' };
+  var pagLabels = { dinheiro: '&#x1F4B5; Dinheiro', pix: '&#x26A1; PIX', maquina: '&#x1F4B3; Maquina', cartao_aproximacao: '&#x1F4B3; Cartão' };
+  var pagColors = { dinheiro: '#16a34a', pix: '#7c3aed', maquina: '#2563eb', cartao_aproximacao: '#d97706' };
   var tipoPag = o.tipo_pagamento || 'maquina';
   var pagDiv = document.createElement('div');
   pagDiv.style.cssText = 'display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;color:#fff;background:' + (pagColors[tipoPag] || '#555') + ';margin:6px 0 8px;';
   pagDiv.innerHTML = pagLabels[tipoPag] || tipoPag;
   card.appendChild(pagDiv);
+              if (tipoPag && tipoPag.indexOf('cartao') !== -1) {
+                            var vCli = parseFloat(o.valor_pedido || 0);
+                                          if (vCli > 0) {
+                                                          var cDiv = document.createElement('div');
+                                                                          cDiv.style.cssText = 'background:#1a0800;border:2px solid #f97316;border-radius:10px;padding:10px 14px;margin-top:8px;text-align:center;';
+                                                                                          cDiv.innerHTML = '<div style="font-size:11px;color:#fb923c;font-weight:700;text-transform:uppercase;margin-bottom:4px;">&#x1F4B3; COBRAR DO CLIENTE NA MAQUININHA</div><div style="font-size:22px;color:#fbbf24;font-weight:900;">R$ ' + vCli.toFixed(2).replace('.', ',') + '</div>';
+                                                                                                          card.appendChild(cDiv);
+                                                                                                                        }
+                                                                                                                                    }
   card.appendChild(makeInfoRow(isDinheiro ? "&#x1F4B0; Ganho Liquido" : "&#x1F4B0; Ganho", "R$ " + vMotoboy.toFixed(2), true));
 
   if (cardType === "mine" && isDinheiro) {
