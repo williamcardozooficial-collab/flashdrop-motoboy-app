@@ -244,6 +244,15 @@ export default function MeusServicosScreen({ user }) {
   </TouchableOpacity>
   </View>
                )}
+               {order.obs_coleta ? (
+                  <View style={s.row}><Text style={s.lbl}>Obs. Coleta</Text><Text style={[s.val, {color:'#f97316', fontWeight:'600'}]}>{order.obs_coleta}</Text></View>
+               ) : null}
+               {order.obs ? (
+                  <View style={s.obsBlock}>
+                    <Text style={s.obsLbl}>📋 Itens / Obs. do Pedido:</Text>
+                    <Text style={s.obsVal}>{order.obs}</Text>
+                  </View>
+               ) : null}
 
 {/* Dados do cliente - somente apos coletar */}
 {clienteVisivel ? (
@@ -263,6 +272,9 @@ export default function MeusServicosScreen({ user }) {
    </TouchableOpacity>
    </View>
                     )}
+               {order.obs_entrega_loja ? (
+                  <View style={s.row}><Text style={s.lbl}>Obs. Entrega</Text><Text style={[s.val, {color:'#f97316', fontWeight:'600'}]}>{order.obs_entrega_loja}</Text></View>
+               ) : null}
  {order.tipo_pagamento === 'dinheiro' && (
                        <View style={s.cobranca}>
                          <Text style={s.cobrancaLbl}>💵 Cobrar do Cliente</Text>
@@ -346,4 +358,7 @@ const s = StyleSheet.create({
     modalBtnTxt: { color: '#fff', fontSize: 15, fontWeight: '700' },
     modalCancel: { borderWidth: 1, borderColor: '#555', borderRadius: 10, padding: 12, alignItems: 'center' },
     modalCancelTxt: { color: '#aaa', fontSize: 14 },
+    obsBlock: { backgroundColor: 'rgba(249,115,22,0.1)', borderLeftWidth: 3, borderLeftColor: '#f97316', padding: 10, marginTop: 6, marginBottom: 4, borderRadius: 6 },
+    obsLbl: { color: '#f97316', fontSize: 12, fontWeight: '700', marginBottom: 4 },
+    obsVal: { color: '#fff', fontSize: 13, lineHeight: 20 },
 });
