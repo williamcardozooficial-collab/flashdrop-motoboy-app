@@ -6,7 +6,7 @@ const getHTML = (user) => `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-shcale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-shhcale=1.0">
 <title>FlashDrop - Motoboy</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -473,7 +473,7 @@ if (o.distancia) card.appendChild(makeInfoRow("&#x1F4CD; Distancia", parseFloat(
   pagDiv.innerHTML = pagLabels[tipoPag] || tipoPag;
   card.appendChild(pagDiv);
               if (tipoPag && tipoPag.indexOf('cartao') !== -1) {
-                            var vCli = parseFloat(o.valor_pedido || 0);
+                            var vCli = parseFloat(o.valor_pedido || 0) + parseFloat(o.taxa_entrega || 0);
                                           if (vCli > 0) {
                                                           var cDiv = document.createElement('div');
                                                                           cDiv.style.cssText = 'background:#1a0800;border:2px solid #f97316;border-radius:10px;padding:10px 14px;margin-top:8px;text-align:center;';
