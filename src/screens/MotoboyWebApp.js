@@ -421,10 +421,17 @@ if (o.distancia) card.appendChild(makeInfoRow("&#x1F4CD; Distancia", parseFloat(
       var navEntrega = makeNavBtns("Entrega", o.endereco_entrega);
       if (navEntrega) card.appendChild(navEntrega);
       if (o.tipo_pagamento === "dinheiro") {
-        var valorPedido = parseFloat(o.valor_pedido || 0); var valorEntrega = parseFloat(o.valor_total || 0); var totalCobrar = valorPedido + valorEntrega;
+        var valorPedido = parseFloat(o.valor_pedido || 0); var valorEntrega = parseFloat(o.taxa_entrega || 0); var totalCobrar = valorPedido + valorEntrega;
         var cobrarDiv = document.createElement("div"); cobrarDiv.style.cssText = "background:#1a2a00;border:2px solid #ffcc00;border-radius:10px;padding:12px;margin:10px 0;text-align:center;";
         cobrarDiv.innerHTML = "<div style='font-size:11px;color:#ffcc00;font-weight:700;text-transform:uppercase;margin-bottom:4px;'>&#x1F4B5; Cobrar do Cliente</div><div style='font-size:22px;font-weight:900;color:#ffcc00;'>R$ " + totalCobrar.toFixed(2) + "</div><div style='font-size:11px;color:#aaa;margin-top:4px;'>Produto: R$ " + valorPedido.toFixed(2) + " + Entrega: R$ " + valorEntrega.toFixed(2) + "</div>";
         card.appendChild(cobrarDiv);
+      }
+
+      if (o.tipo_pagamento === "maquina") {
+        var vProd = parseFloat(o.valor_pedido || 0); var vEntrega = parseFloat(o.taxa_entrega || 0); var vTotal = vProd + vEntrega;
+        var maqDiv = document.createElement("div"); maqDiv.style.cssText = "background:#001a2e;border:2px solid #0088ff;border-radius:10px;padding:12px;margin:10px 0;text-align:center;";
+        maqDiv.innerHTML = "<div style='font-size:11px;color:#0088ff;font-weight:700;text-transform:uppercase;margin-bottom:4px;'>&#x1F4B3; Cobrar do Cliente (Cart\u00e3o Aprox.)</div><div style='font-size:22px;font-weight:900;color:#0088ff;'>R$ " + vTotal.toFixed(2).replace('.',',') + "</div><div style='font-size:11px;color:#aaa;margin-top:4px;'>Produto: R$ " + vProd.toFixed(2).replace('.',',') + " + Entrega: R$ " + vEntrega.toFixed(2).replace('.',',') + "</div>";
+        card.appendChild(maqDiv);
       }
     }
   } else if (o.status === "entregue") {
