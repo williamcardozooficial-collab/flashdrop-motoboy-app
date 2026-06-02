@@ -107,7 +107,8 @@ export default function SaldoScreen() {
 
   const renderEvent = (item, idx) => {
         const v = parseFloat(item.amount || item.valor || 0);
-        const isPos = v >= 0;
+        const TIPOS_DEBITO = ['debito_cartao_aprox','debito_pedido','debito','taxa','multa','desconto'];
+        const isPos = !TIPOS_DEBITO.includes(item.tipo);
         const desc = item.description || item.descricao || item.type || 'Movimentacao';
         return (
                 <View key={String(item.id || idx)} style={s.eventRow}>
