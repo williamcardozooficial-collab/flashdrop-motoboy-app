@@ -551,7 +551,17 @@ if (o.distancia) card.appendChild(makeInfoRow("&#x1F4CD; Distancia", parseFloat(
         showConfirm(alabel, "Confirmar acao: <strong>" + alabel + "</strong>?", function() { doAction(oid, akey); });
       });
     })(o.id, actionKey, action.label);
-    card.appendChild(btn);
+    /* -- BLOQUEAR ACEITE POR SALDO -- */
+    if (actionKey === "pendente" && (o.tipo_pagamento === "dinheiro" || o.tipo_pagamento === "cartao_aproximacao")) {
+    var _totalCobrar = parseFloat(o.valor_pedido || 0) + parseFloat(o.valor_total || 0);
+    var _saldoDisp = parseFloat(user.balance || 0) + parseFloat(user.custom_credit_limit || 0);
+    if (_totalCobrar > _saldoDisp) {
+    var _aviso = document.createElement("div");
+    _aviso.style.cssText = "background:#3a1a1a;border:1px solid #c0392b;border-radius:8px;padding:10px;font-size:12px;color:#e74c3c;text-align:center;margin-top:4px";
+    _aviso.innerHTML = "&#x1F6AB; Saldo insuf. para aceitar.<br>Cobrar: <strong>R$ " + _totalCobrar.toFixed(2).replace(".",",") + "<" + "/strong> &gt; Saldo: <strong>R$ " + _saldoDisp.toFixed(2).replace(".",",") + "<" + "/strong>";
+    card.appendChild(_aviso);
+    } else { card.appendChild(btn); }
+    } else { card.appendChild(btn); }
   }
 
   if (cardType === "mine" && (o.status === "aceito" || o.status === "na_loja")) {
