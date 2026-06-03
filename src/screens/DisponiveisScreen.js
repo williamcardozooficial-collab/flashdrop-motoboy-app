@@ -157,8 +157,27 @@ setToggling(false);
 }
 };
 
-const aceitarPedido = (pedido) => {
+const aceitarPedido = async (pedido) => {
 if (!user) return;
+// Verificar saldo para dinheiro / cartao_aproximacao
+if (pedido.tipo_pagamento === 'dinheiro' || pedido.tipo_pagamento === 'cartao_aproximacao') {
+  try {
+    const _ru = await fetch(API_BASE + '/users/' + user.id);
+    const _ud = await _ru.json();
+    const _saldo = parseFloat(_ud.balance || _ud.saldo || 0);
+    const _credito = parseFloat(_ud.custom_credit_limit || 0);
+    const _saldoDisp = _saldo + _credito;
+    const _totalCobrar = parseFloat(pedido.valor_pedido || 0) + parseFloat(pedido.valor_total || 0);
+    if (_totalCobrar > _saldoDisp) {
+      const _tipo = pedido.tipo_pagamento === 'dinheiro' ? 'Dinheiro' : 'Cartão por Aproximação';
+      Alert.alert('🚫 Saldo Insuficiente', 'Esta entrega é em ' + _tipo + '.\nValor a cobrar: R$ ' + _totalCobrar.toFixed(2).replace('.', ',') + '\nSaldo disponível: R$ ' + _saldoDisp.toFixed(2).replace('.', ','));
+      return;
+    }
+  } catch(_e) {
+    Alert.alert('Erro', 'Não foi possível verificar seu saldo. Tente novamente.');
+    return;
+  }
+}
 const coleta = pedido.pickup_address || pedido.endereco_coleta || 'N/D';
 const entrega = pedido.delivery_address || pedido.endereco_entrega || 'N/D';
 const valor = parseFloat(pedido.motoboy_fee || pedido.valor_motoboy || 0);
