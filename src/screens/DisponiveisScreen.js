@@ -222,9 +222,20 @@ return (
 </View>
 <View style={s.cardBot}>
 <Text style={s.valor}>R$ {valor.toFixed(2).replace('.', ',')}</Text>
-<TouchableOpacity style={s.aceitarBtn} onPress={() => aceitarPedido(item)}>
-<Text style={s.aceitarTxt}>ACEITAR</Text>
-</TouchableOpacity>
+{(() => {
+  const _tipoPag = item.tipo_pagamento;
+  const _bloqueado = (_tipoPag === 'dinheiro' || _tipoPag === 'cartao_aproximacao');
+  const _totalCobrar = parseFloat(item.valor_pedido || 0) + parseFloat(item.valor_total || 0);
+  const _saldoDisp = saldo + parseFloat(user?.custom_credit_limit || 0);
+  if (_bloqueado && _totalCobrar > _saldoDisp) {
+    return <Text style={{color:'#e74c3c',fontSize:11,textAlign:'center',marginTop:4,fontWeight:'bold'}}>{'🚫 Saldo insuficiente\nCobrar: R$ '+_totalCobrar.toFixed(2).replace('.',',')+'\nSaldo: R$ '+_saldoDisp.toFixed(2).replace('.',',')}</Text>;
+  }
+  return (
+    <TouchableOpacity style={s.aceitarBtn} onPress={() => aceitarPedido(item)}>
+      <Text style={s.aceitarTxt}>ACEITAR</Text>
+    </TouchableOpacity>
+  );
+})()}
 </View>
 </View>
 );
