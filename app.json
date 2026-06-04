@@ -17,6 +17,8 @@
         "backgroundColor": "#1a1a1a"
       },
       "package": "com.flashdrop.motoboy",
+      "targetSdkVersion": 35,
+      "compileSdkVersion": 35,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
