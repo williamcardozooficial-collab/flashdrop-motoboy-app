@@ -182,7 +182,7 @@ function makeNavBtns(label, address) {
   return wrap;
 }
 
-var API = "https://flashdrop-backend-production.up.railway.app";
+var API = "https://flashdrop-backend-production.up.railway.app"; var _gpsInterval=null,_gpsOrderId=null; function enviarLocalizacao(orderId){ if(!navigator.geolocation)return; navigator.geolocation.getCurrentPosition(function(pos){ if(!user||!user.id)return; fetch(API+'/motoboys/'+user.id+'/localizacao',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({lat:pos.coords.latitude,lng:pos.coords.longitude,order_id:orderId}) }).catch(function(){}); },function(){},{enableHighAccuracy:true,timeout:5000}); } function iniciarGPS(orderId){ if(_gpsInterval){_gpsOrderId=orderId||null;return;} _gpsOrderId=orderId||null; enviarLocalizacao(_gpsOrderId); _gpsInterval=setInterval(function(){enviarLocalizacao(_gpsOrderId);},30000); } function pararGPS(){ if(_gpsInterval){clearInterval(_gpsInterval);_gpsInterval=null;} _gpsOrderId=null; }
 var tg = { showAlert: function(m){ alert(m); }, expand: function(){} };
 
 var user = ${JSON.stringify(user)};
@@ -250,8 +250,8 @@ async function toggleOnline() {
     if (resp.ok) {
       user.online = newOnline;
       var sairBtn2 = document.getElementById('sair-btn'); if(sairBtn2) sairBtn2.style.display = newOnline ? 'none' : 'block';
-      if (newOnline) { _onlineAt = Date.now(); localStorage.setItem('_fd_onlineAt', _onlineAt); _autoOfflineTimer = setTimeout(autoOfflineCheck, AUTO_OFFLINE_MS); }
-      else { _onlineAt = null; localStorage.removeItem('_fd_onlineAt'); if (_autoOfflineTimer) { clearTimeout(_autoOfflineTimer); _autoOfflineTimer = null; } }
+      if (newOnline) { _onlineAt = Date.now(); localStorage.setItem('_fd_onlineAt', _onlineAt); _autoOfflineTimer = setTimeout(autoOfflineCheck, AUTO_OFFLINE_MS); if (!_gpsInterval) iniciarGPS(activeOrders && activeOrders.length ? activeOrders[0].id : null); }
+      else { _onlineAt = null; localStorage.removeItem('_fd_onlineAt'); if (_autoOfflineTimer) { clearTimeout(_autoOfflineTimer); _autoOfflineTimer = null; } pararGPS(); }
       syncUser();
     }
   } catch(e) { alert("Erro ao atualizar status."); }
@@ -628,7 +628,7 @@ function updateTabBadge(id, count) {
     var mine = orders.filter(function(o) { return String(o.motoboy_id) === String(user.id); });
     var active = mine.filter(function(o) { return o.status !== "entregue" && o.status !== "retornado" && o.status !== "cancelado"; });
     var done = mine.filter(function(o) { return o.status === "entregue" || o.status === "retornado"; });
-    activeOrders = active;
+    activeOrders = active; var _pedidoGps = active.find(function(o){ return ['aceito','na_loja','coletado','no_cliente'].indexOf(o.status) > -1; }); if (user.online) { if (!_gpsInterval) { iniciarGPS(_pedidoGps ? _pedidoGps.id : null); } else { _gpsOrderId = _pedidoGps ? _pedidoGps.id : null; } } else if (_gpsInterval) { pararGPS(); }
 
     var avDiv = document.getElementById("available-orders"); avDiv.innerHTML = "";
     var doneDiv = document.getElementById("done-orders"); doneDiv.innerHTML = "";
