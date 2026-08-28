@@ -23,7 +23,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "FlashDrop precisa da sua localização para atribuir pedidos próximos."
+          "locationAlwaysAndWhenInUsePermission": "FlashDrop precisa da sua localização para atribuir pedidos próximos e rastrear sua entrega mesmo com o app em segundo plano.", "isAndroidBackgroundLocationEnabled": true, "isAndroidForegroundServiceEnabled": true, "isIosBackgroundLocationEnabled": true
         }
       ],
       [
