@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView } from 'react-native-webview'; import { startBackgroundLocationTracking, stopBackgroundLocationTracking } from '../backgroundLocationTask';
 
 const getHTML = (user) => `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -182,7 +182,7 @@ function makeNavBtns(label, address) {
   return wrap;
 }
 
-var API = "https://flashdrop-backend-production.up.railway.app"; var _gpsInterval=null,_gpsOrderId=null; function enviarLocalizacao(orderId){ if(!navigator.geolocation)return; navigator.geolocation.getCurrentPosition(function(pos){ if(!user||!user.id)return; fetch(API+'/motoboys/'+user.id+'/localizacao',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({lat:pos.coords.latitude,lng:pos.coords.longitude,order_id:orderId}) }).catch(function(){}); },function(){},{enableHighAccuracy:true,timeout:5000}); } function iniciarGPS(orderId){ if(_gpsInterval){_gpsOrderId=orderId||null;return;} _gpsOrderId=orderId||null; enviarLocalizacao(_gpsOrderId); _gpsInterval=setInterval(function(){enviarLocalizacao(_gpsOrderId);},30000); } function pararGPS(){ if(_gpsInterval){clearInterval(_gpsInterval);_gpsInterval=null;} _gpsOrderId=null; }
+var API = "https://flashdrop-backend-production.up.railway.app"; var _gpsInterval=null,_gpsOrderId=null; function fmtEndereco(v){if(!v)return '';try{var o=JSON.parse(v);var parts=[o.rua,o.num,o.comp,o.bairro,o.cidade].filter(Boolean);return parts.join(', ');}catch(e){return v;}} function enviarLocalizacao(orderId){ if(!navigator.geolocation)return; navigator.geolocation.getCurrentPosition(function(pos){ if(!user||!user.id)return; fetch(API+'/motoboys/'+user.id+'/localizacao',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({lat:pos.coords.latitude,lng:pos.coords.longitude,order_id:orderId}) }).catch(function(){}); },function(){},{enableHighAccuracy:true,timeout:5000}); } function iniciarGPS(orderId){ if(window.ReactNativeWebView)window.ReactNativeWebView.postMessage(JSON.stringify({type:'startGPS',orderId:orderId||null})); if(_gpsInterval){_gpsOrderId=orderId||null;return;} _gpsOrderId=orderId||null; enviarLocalizacao(_gpsOrderId); _gpsInterval=setInterval(function(){enviarLocalizacao(_gpsOrderId);},30000); } function pararGPS(){ if(window.ReactNativeWebView)window.ReactNativeWebView.postMessage(JSON.stringify({type:'stopGPS'})); if(_gpsInterval){clearInterval(_gpsInterval);_gpsInterval=null;} _gpsOrderId=null; }
 var tg = { showAlert: function(m){ alert(m); }, expand: function(){} };
 
 var user = ${JSON.stringify(user)};
@@ -390,8 +390,8 @@ function makeOrderCard(o, cardType) {
 if (o.distancia) card.appendChild(makeInfoRow("&#x1F4CD; Distancia", parseFloat(o.distancia).toFixed(1) + " km"));
 
   if (o.endereco_coleta) {
-    card.appendChild(makeInfoRow("&#x1F4E6; Coleta", o.endereco_coleta + (o.complemento_coleta ? " - " + o.complemento_coleta : "")));
-    if (cardType === "mine") { var navColeta = makeNavBtns("Coleta", o.endereco_coleta); if (navColeta) card.appendChild(navColeta); }
+    card.appendChild(makeInfoRow("&#x1F4E6; Coleta", fmtEndereco(o.endereco_coleta) + (o.complemento_coleta ? " - " + o.complemento_coleta : "")));
+    if (cardType === "mine") { var navColeta = makeNavBtns("Coleta", fmtEndereco(o.endereco_coleta)); if (navColeta) card.appendChild(navColeta); }
   }
 
   var clienteVisivel = (o.status === "coletado" || o.status === "no_cliente");
@@ -417,8 +417,8 @@ if (o.distancia) card.appendChild(makeInfoRow("&#x1F4CD; Distancia", parseFloat(
   card.appendChild(cliRow);
 }
     if (o.endereco_entrega) {
-      card.appendChild(makeInfoRow("&#x1F4CD; Entrega", o.endereco_entrega + (o.complemento_entrega ? " - " + o.complemento_entrega : "")));
-      var navEntrega = makeNavBtns("Entrega", o.endereco_entrega);
+      card.appendChild(makeInfoRow("&#x1F4CD; Entrega", fmtEndereco(o.endereco_entrega) + (o.complemento_entrega ? " - " + o.complemento_entrega : "")));
+      var navEntrega = makeNavBtns("Entrega", fmtEndereco(o.endereco_entrega));
       if (navEntrega) card.appendChild(navEntrega);
       if (o.tipo_pagamento === "dinheiro") {
         var valorPedido = parseFloat(o.valor_pedido || 0); var valorEntrega = parseFloat(o.valor_total || 0); var totalCobrar = valorPedido + valorEntrega;
@@ -436,9 +436,9 @@ if (o.distancia) card.appendChild(makeInfoRow("&#x1F4CD; Distancia", parseFloat(
     }
   } else if (o.status === "entregue") {
     var privDiv = document.createElement("div"); privDiv.style = "font-size:11px;color:#666;font-style:italic;margin:4px 0;"; privDiv.innerHTML = "&#x1F512; Dados do cliente ocultados por privacidade."; card.appendChild(privDiv);
-    if (o.endereco_entrega) card.appendChild(makeInfoRow("&#x1F4CD; Entrega", o.endereco_entrega));
+    if (o.endereco_entrega) card.appendChild(makeInfoRow("&#x1F4CD; Entrega", fmtEndereco(o.endereco_entrega)));
   } else {
-    if (o.endereco_entrega) card.appendChild(makeInfoRow("&#x1F4CD; Entrega", o.endereco_entrega));
+    if (o.endereco_entrega) card.appendChild(makeInfoRow("&#x1F4CD; Entrega", fmtEndereco(o.endereco_entrega)));
     var privDiv2 = document.createElement("div"); privDiv2.style = "font-size:11px;color:#ff9500;font-style:italic;margin:4px 0;"; privDiv2.innerHTML = "&#x1F512; Dados do cliente liberados ao coletar."; card.appendChild(privDiv2);
   }
 
@@ -912,7 +912,7 @@ export default function MotoboyWebApp({ user, onLogout }) {
         ref={webviewRef}
         source={{ html, baseUrl: 'https://flashdrop-backend-production.up.railway.app' }}
         injectedJavaScriptBeforeContentLoaded={injectedJS}
-        onMessage={(event) => {
+        onMessage={(event) => { try { var _m = JSON.parse(event.nativeEvent.data); if (_m && _m.type === 'startGPS') { startBackgroundLocationTracking(user && user.id, _m.orderId || null); return; } if (_m && _m.type === 'stopGPS') { stopBackgroundLocationTracking(); return; } } catch (_e) {}
           if (event.nativeEvent.data === 'logout') {
             onLogout();
           }
