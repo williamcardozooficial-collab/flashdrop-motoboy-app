@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, RefreshControl, Linking, TextInput, Modal } from 'react-native';
 
-const API = 'https://flashdrop-backend-production.up.railway.app';
+const API = 'https://flashdrop-backend-production.up.railway.app'; const fmtEndereco = (v) => { if (!v) return ''; try { var o = typeof v === 'string' ? JSON.parse(v) : v; if (o && typeof o === 'object') { return [o.rua, o.num, o.comp, o.bairro, o.cidade].filter(Boolean).join(', '); } return v; } catch (e) { return v; } };
 const STATUS_LABELS = { pendente:'Aguardando',aceito:'Aceito',na_loja:'Na Loja',coletado:'A Entregar',no_cliente:'No Cliente',entregue:'Entregue',retornado:'Retornado' };
 const ACTION_MAP = {
     aceito:    { label:'Cheguei na Loja',    next:'na_loja',    msg:'Colete o pedido na loja.' },
@@ -232,14 +232,14 @@ export default function MeusServicosScreen({ user }) {
 {/* Loja e coleta */}
               <View style={s.row}><Text style={s.lbl}>Loja</Text><Text style={s.val}>{order.loja_name || order.loja_user}</Text></View>
 {order.endereco_coleta && (
-                  <View style={s.row}><Text style={s.lbl}>Coleta</Text><Text style={s.val}>{order.endereco_coleta}</Text></View>
+                  <View style={s.row}><Text style={s.lbl}>Coleta</Text><Text style={s.val}>{fmtEndereco(order.endereco_coleta)}</Text></View>
                )}
 {order.endereco_coleta && (
                   <View style={s.navRow}>
-                  <TouchableOpacity style={s.navMaps} onPress={() => openMaps(order.endereco_coleta)}>
+                  <TouchableOpacity style={s.navMaps} onPress={() => openMaps(fmtEndereco(order.endereco_coleta))}>
                       <Text style={s.navTxt}>📍 Maps Coleta</Text>
   </TouchableOpacity>
-                   <TouchableOpacity style={s.navWaze} onPress={() => openWaze(order.endereco_coleta)}>
+                   <TouchableOpacity style={s.navWaze} onPress={() => openWaze(fmtEndereco(order.endereco_coleta))}>
                       <Text style={s.navTxtDark}>🚗 Waze Coleta</Text>
   </TouchableOpacity>
   </View>
@@ -260,14 +260,14 @@ export default function MeusServicosScreen({ user }) {
 {order.nome_cliente && <View style={s.row}><Text style={s.lbl}>Cliente</Text><Text style={s.val}>{order.nome_cliente}</Text></View>}
 {order.telefone_cliente && <View style={s.row}><Text style={s.lbl}>Tel Cliente</Text><Text style={s.val}>{order.telefone_cliente}</Text></View>}
  {order.endereco_entrega && (
-                       <View style={s.row}><Text style={s.lbl}>Entrega</Text><Text style={s.val}>{order.endereco_entrega}</Text></View>
+                       <View style={s.row}><Text style={s.lbl}>Entrega</Text><Text style={s.val}>{fmtEndereco(order.endereco_entrega)}</Text></View>
                     )}
  {order.endereco_entrega && (
                        <View style={s.navRow}>
-                         <TouchableOpacity style={s.navMaps} onPress={() => openMaps(order.endereco_entrega)}>
+                         <TouchableOpacity style={s.navMaps} onPress={() => openMaps(fmtEndereco(order.endereco_entrega))}>
                            <Text style={s.navTxt}>📍 Maps Entrega</Text>
    </TouchableOpacity>
-                        <TouchableOpacity style={s.navWaze} onPress={() => openWaze(order.endereco_entrega)}>
+                        <TouchableOpacity style={s.navWaze} onPress={() => openWaze(fmtEndereco(order.endereco_entrega))}>
                            <Text style={s.navTxtDark}>🚗 Waze Entrega</Text>
    </TouchableOpacity>
    </View>
