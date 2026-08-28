@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, View } from 'react-native';
 import LoginScreen from './src/screens/LoginScreen';
-import MotoboyWebApp from './src/screens/MotoboyWebApp'; import './src/backgroundLocationTask';
+import MotoboyWebApp from './src/screens/MotoboyWebApp'; import './src/backgroundLocationTask'; import { ensureLocationPermissions } from './src/backgroundLocationTask';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -13,7 +13,7 @@ export default function App() {
       if (data) {
         const u = JSON.parse(data);
         if (u && u.id && u.role === 'motoboy') {
-          setUser(u);
+          setUser(u); ensureLocationPermissions();
         }
       }
       setLoading(false);
@@ -21,7 +21,7 @@ export default function App() {
   }, []);
 
   const handleLogin = (userData) => {
-    setUser(userData);
+    setUser(userData); ensureLocationPermissions();
   };
 
   const handleLogout = async () => {
