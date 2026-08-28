@@ -6,7 +6,7 @@ import {
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import * as Notifications from 'expo-notifications';
+import * as Notifications from 'expo-notifications'; const registerForPush = async (u) => { try { const perm = await Notifications.getPermissionsAsync(); let finalStatus = perm.status; if (finalStatus !== 'granted') { const reqPerm = await Notifications.requestPermissionsAsync(); finalStatus = reqPerm.status; } if (finalStatus !== 'granted') return; await Notifications.setNotificationChannelAsync('default', { name: 'default', importance: Notifications.AndroidImportance.MAX, vibrationPattern: [0,250,250,250], lightColor: '#f97316' }); const tokenData = await Notifications.getExpoPushTokenAsync({ projectId: 'ab1269ff-5731-40d4-98ec-b5865a3a3380' }); const token = tokenData && tokenData.data; if (token && u && u.id) { await fetch('https://flashdrop-backend-production.up.railway.app/users/' + u.id, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + u.token }, body: JSON.stringify({ push_token: token }) }); } } catch (ePush) { console.error('Erro ao registrar push token:', ePush); } };
 
 const API_BASE = 'https://flashdrop-backend-production.up.railway.app'; const fmtEndereco = (v) => { if (!v) return ''; try { var o = typeof v === 'string' ? JSON.parse(v) : v; if (o && typeof o === 'object') { return [o.rua, o.num, o.comp, o.bairro, o.cidade].filter(Boolean).join(', '); } return v; } catch (e) { return v; } };
 
@@ -39,7 +39,7 @@ const d = await AsyncStorage.getItem('flashdrop_user');
 if (d) {
 const u = JSON.parse(d);
 userRef.current = u;
-setUser(u);
+setUser(u); registerForPush(u);
 setOnline(u.online || false);
 setSaldo(parseFloat(u.saldo || u.balance || 0));
 startPolling(u);
