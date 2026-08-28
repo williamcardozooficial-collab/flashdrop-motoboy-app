@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, View } from 'react-native';
 import LoginScreen from './src/screens/LoginScreen';
-import MotoboyWebApp from './src/screens/MotoboyWebApp';
+import MotoboyWebApp from './src/screens/MotoboyWebApp'; import './src/backgroundLocationTask';
 
 export default function App() {
   const [user, setUser] = useState(null);
