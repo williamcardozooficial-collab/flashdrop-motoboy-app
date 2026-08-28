@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, ActivityIndicator, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE = 'https://flashdrop-backend-production.up.railway.app';
+const API_BASE = 'https://flashdrop-backend-production.up.railway.app'; const fmtEndereco = (v) => { if (!v) return ''; try { var o = typeof v === 'string' ? JSON.parse(v) : v; if (o && typeof o === 'object') { return [o.rua, o.num, o.comp, o.bairro, o.cidade].filter(Boolean).join(', '); } return v; } catch (e) { return v; } };
 
 export default function EntreguesScreen() {
     const [orders, setOrders] = useState([]);
@@ -74,8 +74,8 @@ export default function EntreguesScreen() {
           <Text style={s.dt}>{fmt(dt)}</Text>
             <Text style={s.dt}>{fmtT(dt)}</Text>
     </View>
-          <Text style={s.addr}>Coleta: {item.pickup_address || item.endereco_coleta || 'N/D'}</Text>
-          <Text style={s.addr}>Entrega: {item.delivery_address || item.endereco_entrega || 'N/D'}</Text>
+          <Text style={s.addr}>Coleta: {fmtEndereco(item.pickup_address || item.endereco_coleta) || 'N/D'}</Text>
+          <Text style={s.addr}>Entrega: {fmtEndereco(item.delivery_address || item.endereco_entrega) || 'N/D'}</Text>
           <View style={s.row}>
           <Text style={s.fee}>R$ {g.toFixed(2).replace('.', ',')}</Text>
             <Text style={s.badge}>Entregue</Text>
