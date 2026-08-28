@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 
-const API_BASE = 'https://flashdrop-backend-production.up.railway.app';
+const API_BASE = 'https://flashdrop-backend-production.up.railway.app'; const fmtEndereco = (v) => { if (!v) return ''; try { var o = typeof v === 'string' ? JSON.parse(v) : v; if (o && typeof o === 'object') { return [o.rua, o.num, o.comp, o.bairro, o.cidade].filter(Boolean).join(', '); } return v; } catch (e) { return v; } };
 
 export default function DisponiveisScreen({ onLogout }) {
 const [user, setUser] = useState(null);
@@ -178,8 +178,8 @@ if (pedido.tipo_pagamento === 'dinheiro' || pedido.tipo_pagamento === 'cartao_ap
     return;
   }
 }
-const coleta = pedido.pickup_address || pedido.endereco_coleta || 'N/D';
-const entrega = pedido.delivery_address || pedido.endereco_entrega || 'N/D';
+const coleta = fmtEndereco(pedido.pickup_address || pedido.endereco_coleta) || 'N/D';
+const entrega = fmtEndereco(pedido.delivery_address || pedido.endereco_entrega) || 'N/D';
 const valor = parseFloat(pedido.motoboy_fee || pedido.valor_motoboy || 0);
 Alert.alert(
 'Aceitar pedido?',
@@ -229,10 +229,10 @@ const dist = calcDist(item);
 return (
 <View style={s.card}>
 <View style={s.cardTop}>
-<Text style={s.addr} numberOfLines={1}>Coleta: {item.pickup_address || item.endereco_coleta || 'N/D'}</Text>
+<Text style={s.addr} numberOfLines={1}>Coleta: {fmtEndereco(item.pickup_address || item.endereco_coleta) || 'N/D'}</Text>
 {dist ? <Text style={s.dist}>{dist}</Text> : null}
 </View>
-<Text style={s.addr} numberOfLines={1}>Entrega: {item.delivery_address || item.endereco_entrega || 'N/D'}</Text>
+<Text style={s.addr} numberOfLines={1}>Entrega: {fmtEndereco(item.delivery_address || item.endereco_entrega) || 'N/D'}</Text>
 <View style={s.pagRow}>
 {item.tipo_pagamento === 'dinheiro' && <Text style={s.pagDinheiro}>💵 Dinheiro</Text>}
 {item.tipo_pagamento === 'pix' && <Text style={s.pagPix}>⚡ PIX</Text>}
