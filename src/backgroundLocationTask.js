@@ -2,7 +2,7 @@ import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 
 const LOCATION_TASK_NAME = 'flashdrop-background-location';
-const API_BASE = 'https://flashdrop-backend-production.up.railway.app';
+const API_BASE = 'https://flashdrop-backend-production.up.railway.app'; export async function ensureLocationPermissions() { try { const fg = await Location.requestForegroundPermissionsAsync(); if (fg.status !== 'granted') return false; try { await Location.requestBackgroundPermissionsAsync(); } catch (e) {} return true; } catch (e) { console.error('Erro ao solicitar permissoes de localizacao:', e.message); return false; } }
 
 let currentUserId = null;
 let currentOrderId = null;
