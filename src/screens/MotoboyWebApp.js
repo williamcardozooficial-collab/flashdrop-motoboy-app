@@ -197,7 +197,7 @@ var _autoOfflineTimer = null;
 var _onlineAt = null;
         var notifEnabled = true;
         var _prevOrderIds = new Set();
-var AUTO_OFFLINE_MS = 60 * 60 * 1000;
+var AUTO_OFFLINE_MS = 180 * 60 * 1000;
 var TIMER_DURATION = 15 * 60;
 
 var STATUS_LABELS = { pendente:"Aguardando", aceito:"Aceito", na_loja:"Na Loja", coletado:"A Entregar", no_cliente:"No Cliente", entregue:"Entregue", retornado:"Retornado", cancelado:"Cancelado" };
@@ -264,7 +264,7 @@ async function autoOfflineCheck() {
   if (activeOrders && activeOrders.length > 0) { _autoOfflineTimer = setTimeout(autoOfflineCheck, 5 * 60 * 1000); return; }
   try {
     var resp2 = await fetch(API + "/users/" + user.id, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ online: false }) });
-    if (resp2.ok) { user.online = false; _onlineAt = null; localStorage.removeItem('_fd_onlineAt'); _autoOfflineTimer = null; syncUser(); alert("Voce foi colocado Offline automaticamente apos 60 minutos."); }
+    if (resp2.ok) { user.online = false; _onlineAt = null; localStorage.removeItem('_fd_onlineAt'); _autoOfflineTimer = null; syncUser(); alert("Voce foi colocado Offline automaticamente apos 3 horas."); }
   } catch(e2) {}
 }
 
