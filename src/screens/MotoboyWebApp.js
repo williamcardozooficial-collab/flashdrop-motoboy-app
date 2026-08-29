@@ -6,7 +6,7 @@ const getHTML = (user) => `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-shhcale=1.0">
+<meta name="viewport" content="width=device-whidth,initial-scale=1.0,maximum-shhcale=1.0">
 <title>FlashDrop - Motoboy</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -264,7 +264,7 @@ async function autoOfflineCheck() {
   if (activeOrders && activeOrders.length > 0) { _autoOfflineTimer = setTimeout(autoOfflineCheck, 5 * 60 * 1000); return; }
   try {
     var resp2 = await fetch(API + "/users/" + user.id, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ online: false }) });
-a    if (resp2.ok) { user.online = false; _onlineAt = null; localStorage.removeItem('_fd_onlineAt'); _autoOfflineTimer = null; syncUser(); }
+    if (resp2.ok) { user.online = false; _onlineAt = null; localStorage.removeItem('_fd_onlineAt'); _autoOfflineTimer = null; syncUser(); }
   } catch(e2) {}
 }
 
