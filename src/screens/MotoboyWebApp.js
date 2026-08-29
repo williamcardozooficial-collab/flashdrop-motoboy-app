@@ -264,7 +264,7 @@ async function autoOfflineCheck() {
   if (activeOrders && activeOrders.length > 0) { _autoOfflineTimer = setTimeout(autoOfflineCheck, 5 * 60 * 1000); return; }
   try {
     var resp2 = await fetch(API + "/users/" + user.id, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ online: false }) });
-    if (resp2.ok) { user.online = false; _onlineAt = null; localStorage.removeItem('_fd_onlineAt'); _autoOfflineTimer = null; syncUser(); alert("Voce foi colocado Offline automaticamente apos 3 horas."); }
+a    if (resp2.ok) { user.online = false; _onlineAt = null; localStorage.removeItem('_fd_onlineAt'); _autoOfflineTimer = null; syncUser(); }
   } catch(e2) {}
 }
 
@@ -591,23 +591,23 @@ function updateTabBadge(id, count) {
             function playBeep() {
         try {
           var ctx = new (window.AudioContext || window.webkitAudioContext)();
-          function bip(t) {
+          function bip(t, freq) {
             var osc = ctx.createOscillator();
             var gain = ctx.createGain();
             osc.connect(gain); gain.connect(ctx.destination);
-            osc.type = 'sine'; osc.frequency.value = 880;
-            gain.gain.setValueAtTime(0.3, t);
-            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-            osc.start(t); osc.stop(t + 0.2);
+            osc.type = 'square'; osc.frequency.value = freq;
+            gain.gain.setValueAtTime(1.0, t); gain.gain.setValueAtTime(1.0, t + 0.16);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+            osc.start(t); osc.stop(t + 0.22);
           }
           var now = ctx.currentTime;
-          bip(now); bip(now + 0.3); bip(now + 0.6);
+          bip(now, 1200); bip(now + 0.25, 850); bip(now + 0.5, 1200); bip(now + 0.75, 850); bip(now + 1.0, 1200); bip(now + 1.25, 850);
         } catch(e) {}
       }
       function startBeepLoop() {
         if (_beepInterval) return;
         playBeep();
-        _beepInterval = setInterval(function() { if (notifEnabled) playBeep(); }, 4000);
+        _beepInterval = setInterval(function() { if (notifEnabled) playBeep(); }, 2000);
       }
       function stopBeepLoop() {
         if (_beepInterval) { clearInterval(_beepInterval); _beepInterval = null; }
