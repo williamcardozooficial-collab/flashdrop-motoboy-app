@@ -6,7 +6,7 @@ const getHTML = (user) => `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-whidth,initial-scale=1.0,maximum-shhcale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-shhcale=1.0">
 <title>FlashDrop - Motoboy</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
