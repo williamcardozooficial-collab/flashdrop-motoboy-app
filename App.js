@@ -17,7 +17,7 @@ Notifications.setNotificationHandler({
 
 async function setupNotificationChannelAndCategory() {
     try {
-          await Notifications.setNotificationChannelAsync('default', {
+          await Notifications.setNotificationChannelAsync('pedidos_flashdrop_v2', {
                   name: 'Novos pedidos',
                   importance: Notifications.AndroidImportance.MAX,
                   sound: 'default',
