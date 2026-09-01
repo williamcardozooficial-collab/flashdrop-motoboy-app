@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "964413343474",
+    "project_id": "flashdrop-motoboy",
+    "storage_bucket": "flashdrop-motoboy.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:964413343474:android:9e8fc5803b072b17c9326b",
+        "android_client_info": {
+          "package_name": "com.flashdrop.motoboy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDEB3BK0dKu1xfK1WrvDmJPzB9-RLT6ra8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
