@@ -1,53 +1,54 @@
 {
-  "expo": {
-    "name": "FlashDrop Motoboy",
-    "slug": "flashdrop-motoboy-app",
-    "version": "1.0.2",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#1a1a1a"
-    },
-    "android": {
-      "googleServicesFile": "./google-services.json",
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#1a1a1a"
-      },
-      "package": "com.flashdrop.motoboy",
-      "versionCode": 4
-    },
-    "plugins": [
-      [
-        "expo-location",
-        {
-          "locationAlwaysAndWhenInUsePermission": "FlashDrop precisa da sua localização para atribuir pedidos próximos e rastrear sua entrega mesmo com o app em segundo plano.", "isAndroidBackgroundLocationEnabled": true, "isAndroidForegroundServiceEnabled": true, "isIosBackgroundLocationEnabled": true
-        }
-      ],
-      [
-        "expo-notifications",
-        {
+    "expo": {
+          "name": "FlashDrop Motoboy",
+          "slug": "flashdrop-motoboy-app",
+          "version": "1.0.2",
+          "orientation": "portrait",
           "icon": "./assets/icon.png",
-          "color": "#ff6b00"
-        }
-      ],
-      [
-        "expo-build-properties",
-        {
+          "userInterfaceStyle": "dark",
+          "splash": {
+                  "image": "./assets/splash-icon.png",
+                  "resizeMode": "contain",
+                  "backgroundColor": "#1a1a1a"
+          },
           "android": {
-            "targetSdkVersion": 35
-          }
-        }
-      ]
-    ],
-    "extra": {
-      "eas": {
-        "projectId": "ab1269ff-5731-40d4-98ec-b5865a3a3380"
-      }
-    },
-    "owner": "williamcardozo"
-  }
+                  "googleServicesFile": "./google-services.json",
+                  "adaptiveIcon": {
+                            "foregroundImage": "./assets/adaptive-icon.png",
+                            "backgroundColor": "#1a1a1a"
+                  },
+                  "package": "com.flashdrop.motoboy",
+                  "versionCode": 4
+          },
+          "plugins": [
+                  [
+                            "expo-location",
+                            {
+                                        "locationAlwaysAndWhenInUsePermission": "FlashDrop precisa da sua localizacao para atribuir pedidos proximos e rastrear sua entrega mesmo com o app em segundo plano.", "isAndroidBackgroundLocationEnabled": true, "isAndroidForegroundServiceEnabled": true, "isIosBackgroundLocationEnabled": true
+                            }
+                  ],
+                  [
+                            "expo-notifications",
+                            {
+                                        "icon": "./assets/icon.png",
+                                        "color": "#ff6b00",
+                                        "sounds": ["./assets/sounds/novo_pedido_small.mp3"]
+                            }
+                  ],
+                  [
+                            "expo-build-properties",
+                            {
+                                        "android": {
+                                                      "targetSdkVersion": 35
+                                        }
+                            }
+                  ]
+          ],
+          "extra": {
+                  "eas": {
+                            "projectId": "ab1269ff-5731-40d4-98ec-b5865a3a3380"
+                  }
+          },
+          "owner": "williamcardozo"
+    }
 }
