@@ -2,7 +2,7 @@
     "expo": {
           "name": "FlashDrop Motoboy",
           "slug": "flashdrop-motoboy-app",
-          "version": "1.0.2",
+          "version": "1.0.3",
           "orientation": "portrait",
           "icon": "./assets/icon.png",
           "userInterfaceStyle": "dark",
@@ -18,7 +18,7 @@
                             "backgroundColor": "#1a1a1a"
                   },
                   "package": "com.flashdrop.motoboy",
-                  "versionCode": 4
+                  "versionCode": 5
           },
           "plugins": [
                   [
