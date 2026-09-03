@@ -100,7 +100,7 @@ body{font-family:-apple-system,sans-serif;background:#1a1a1a;color:#fff;min-heig
 </head>
 <body>
 <div class="header" style="position:relative">
-<button id="notif-toggle-btn" onclick="notifEnabled=!notifEnabled;this.textContent=notifEnabled?'\uD83D\uDD14':'\uD83D\uDD15';" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.1);color:#ffcc00;border:1px solid #555;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:bold;cursor:pointer;">🔔</button>
+<button id="notif-toggle-btn" onclick="notifEnabled=!notifEnabled;this.textContent=notifEnabled?'\uD83D\uDD14':'\uD83D\uDD15';" style="position:absolute;top:28px;right:14px;background:rgba(255,255,255,0.1);color:#ffcc00;border:1px solid #555;border-radius:12px;padding:12px 16px;font-size:22px;font-weight:bold;cursor:pointer;min-width:48px;min-height:48px;display:flex;align-items:center;justify-content:center;">🔔</button>
 <button id="sair-btn" class="logout-btn" onclick="doLogout()">Sair</button>
 <h1>FlashDrop Motoboy</h1>
 <div id="motoboy-name" style="color:#ccc;font-size:14px">Carregando...</div>
