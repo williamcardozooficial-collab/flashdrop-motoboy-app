@@ -8,11 +8,14 @@ import MotoboyWebApp from './src/screens/MotoboyWebApp'; import './src/backgroun
 const API_BASE = 'https://flashdrop-backend-production.up.railway.app';
 
 Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-    }),
+    handleNotification: async (notification) => {
+        const silencioso = !!(notification && notification.request && notification.request.content && notification.request.content.data && notification.request.content.data.silencioso);
+        return {
+            shouldShowAlert: true,
+            shouldPlaySound: !silencioso,
+            shouldSetBadge: false,
+        };
+    },
 });
 
 async function setupNotificationChannelAndCategory() {
@@ -27,6 +30,15 @@ async function setupNotificationChannelAndCategory() {
                 usage: Notifications.AndroidAudioUsage.ALARM,
             },
             bypassDnd: true,
+        });
+        // Canal silencioso: usado quando o motoboy ja esta com um pedido em andamento,
+        // para nao atrapalhar/distrair enquanto ele dirige ate a entrega.
+        await Notifications.setNotificationChannelAsync('pedidos_flashdrop_silencioso', {
+            name: 'Novos pedidos (silencioso)',
+            importance: Notifications.AndroidImportance.DEFAULT,
+            sound: null,
+            vibrationPattern: [0],
+            lightColor: '#ff6b00',
         });
         await Notifications.setNotificationCategoryAsync('novo_pedido', [
             { identifier: 'aceitar', buttonTitle: 'Aceitar', options: { opensAppToForeground: false } },
