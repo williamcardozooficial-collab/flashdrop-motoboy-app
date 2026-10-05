@@ -1,8 +1,17 @@
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LOCATION_TASK_NAME = 'flashdrop-background-location';
-const API_BASE = 'https://flashdrop-backend-production.up.railway.app'; export async function ensureLocationPermissions() { try { const fg = await Location.requestForegroundPermissionsAsync(); if (fg.status !== 'granted') return false; try { await Location.requestBackgroundPermissionsAsync(); } catch (e) {} return true; } catch (e) { console.error('Erro ao solicitar permissoes de localizacao:', e.message); return false; } }
+const API_BASE = 'https://flashdrop-backend-production.up.railway.app';
+
+// Declaracao em destaque (politica do Google Play para localizacao em segundo plano):
+// o app so pede a permissao de localizacao depois que o motoboy leu e aceitou a explicacao.
+const CONSENT_KEY = 'flashdrop_bg_location_consent';
+export async function hasLocationConsent() { try { return (await AsyncStorage.getItem(CONSENT_KEY)) === '1'; } catch (e) { return false; } }
+export async function setLocationConsent(value) { try { if (value) await AsyncStorage.setItem(CONSENT_KEY, '1'); else await AsyncStorage.removeItem(CONSENT_KEY); } catch (e) {} }
+
+export async function ensureLocationPermissions() { try { if (!(await hasLocationConsent())) return false; const fg = await Location.requestForegroundPermissionsAsync(); if (fg.status !== 'granted') return false; try { await Location.requestBackgroundPermissionsAsync(); } catch (e) {} return true; } catch (e) { console.error('Erro ao solicitar permissoes de localizacao:', e.message); return false; } }
 
 let currentUserId = null;
 let currentOrderId = null;
@@ -36,6 +45,7 @@ export async function startBackgroundLocationTracking(userId, orderId) {
   currentOrderId = orderId || null;
   if (!currentUserId) return false;
   try {
+    if (!(await hasLocationConsent())) return false;
     const fg = await Location.requestForegroundPermissionsAsync();
     if (fg.status !== 'granted') return false;
     const bg = await Location.requestBackgroundPermissionsAsync();

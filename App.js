@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, View } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import LoginScreen from './src/screens/LoginScreen';
+import './src/appOpener';
 import MotoboyWebApp from './src/screens/MotoboyWebApp'; import './src/backgroundLocationTask'; import { ensureLocationPermissions } from './src/backgroundLocationTask';
 
 const API_BASE = 'https://flashdrop-backend-production.up.railway.app';
@@ -64,7 +65,7 @@ async function registerForPush(u) {
             await fetch(API_BASE + '/users/' + u.id, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + u.token },
-                body: JSON.stringify({ push_token: token }),
+                body: JSON.stringify({ push_token: token, app_abre_auto: true }),
             });
         }
     } catch (ePush) {
