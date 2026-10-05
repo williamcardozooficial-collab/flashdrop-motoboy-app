@@ -1,13 +1,18 @@
-import React, { useRef } from 'react';
-import { StyleSheet, View, ActivityIndicator, Linking } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { StyleSheet, View, ActivityIndicator, Linking, AppState } from 'react-native';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
-import { WebView } from 'react-native-webview'; import { startBackgroundLocationTracking, stopBackgroundLocationTracking } from '../backgroundLocationTask';
+import { WebView } from 'react-native-webview'; import { startBackgroundLocationTracking, stopBackgroundLocationTracking, hasLocationConsent, setLocationConsent } from '../backgroundLocationTask';
+import { canDrawOverlays, isIgnoringBatteryOptimizations, openOverlaySettings, openBatterySettings } from '../../modules/flashdrop-native';
 
 // Confere as permissoes necessarias para o motoboy ficar online.
-// Retorna { ok, faltando: [...] } com os nomes (em portugues) do que ainda falta liberar.
+// Retorna { ok, needConsent, faltando: [...] }. Itens: localizacao, notificacoes, sobrepor, bateria.
+// A localizacao so e pedida depois que o motoboy aceitou a declaracao em destaque (needConsent).
 async function checarPermissoesOnline() {
   const faltando = [];
+  if (!(await hasLocationConsent())) {
+    return { ok: false, needConsent: true, faltando };
+  }
   try {
     let fg = await Location.getForegroundPermissionsAsync();
     if (fg.status !== 'granted') fg = await Location.requestForegroundPermissionsAsync();
@@ -22,7 +27,9 @@ async function checarPermissoesOnline() {
     if (n.status !== 'granted') n = await Notifications.requestPermissionsAsync();
     if (n.status !== 'granted') faltando.push('notificacoes');
   } catch (e) { console.error('Erro ao checar notificacoes:', e.message); }
-  return { ok: faltando.length === 0, faltando };
+  try { if (!canDrawOverlays()) faltando.push('sobrepor'); } catch (e) {}
+  try { if (!isIgnoringBatteryOptimizations()) faltando.push('bateria'); } catch (e) {}
+  return { ok: faltando.length === 0, needConsent: false, faltando };
 }
 
 const getHTML = (user) => `<!DOCTYPE html>
@@ -300,31 +307,84 @@ function checkPermsNative() {
     _permResolvers[id] = res;
     window.ReactNativeWebView.postMessage(JSON.stringify({ type: "checkPerms", id: id }));
     // Se o app nativo nao responder, nao trava o motoboy fora do ar.
-    setTimeout(function() { if (_permResolvers[id]) { delete _permResolvers[id]; res({ ok: true, timeout: true }); } }, 10000);
+    setTimeout(function() { if (_permResolvers[id]) { delete _permResolvers[id]; res({ ok: true, timeout: true }); } }, 20000);
   });
 }
+function postNative(obj) { if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(obj)); }
+
+// Declaracao em destaque (exigida pelo Google Play para localizacao em segundo plano).
+// Aparece ANTES de qualquer pedido de permissao de localizacao.
+function showDisclosureModal() {
+  var old = document.getElementById("disc-modal"); if (old) old.remove();
+  var m = document.createElement("div"); m.id = "disc-modal";
+  m.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto";
+  m.innerHTML = "<div style='background:#222;border:1px solid #ffcc00;border-radius:12px;padding:20px;max-width:380px;width:100%;color:#fff;font-size:14px;line-height:1.45'>" +
+    "<div style='font-size:18px;font-weight:800;color:#ffcc00;margin-bottom:10px'>Uso da sua localizacao</div>" +
+    "<p style='margin:0 0 10px'>O <b>FlashDrop Motoboy coleta dados de localizacao (GPS), inclusive quando o app esta fechado ou nao esta em uso</b>, enquanto voce esta <b>online</b>.</p>" +
+    "<p style='margin:0 0 6px'>Usamos a localizacao para:</p>" +
+    "<ul style='margin:0 0 10px 18px;padding:0'>" +
+    "<li>enviar para voce os pedidos mais proximos;</li>" +
+    "<li>acompanhar a sua entrega e mostrar o andamento para a loja e para o cliente;</li>" +
+    "<li>calcular distancias e valores das corridas.</li></ul>" +
+    "<p style='margin:0 0 10px;color:#ccc'>Voce pode parar a coleta a qualquer momento ficando offline. Para funcionar com o app fechado, na proxima tela escolha <b>Permitir o tempo todo</b>.</p>" +
+    "<button id='disc-ok' style='width:100%;padding:13px;border:0;border-radius:8px;background:#ffcc00;color:#000;font-weight:800;font-size:15px;margin-bottom:8px'>Concordar e continuar</button>" +
+    "<button id='disc-no' style='width:100%;padding:11px;border:1px solid #555;border-radius:8px;background:transparent;color:#ccc;font-size:14px'>Agora nao</button></div>";
+  document.body.appendChild(m);
+  document.getElementById("disc-ok").onclick = function() { m.remove(); postNative({ type: "consent", value: true }); try { localStorage.setItem("_fd_bgloc_consent", "1"); } catch (e) {}
+    if (user.online) { setTimeout(function() { try { if (!_gpsInterval) iniciarGPS(activeOrders && activeOrders.length ? activeOrders[0].id : null); } catch (e) {} }, 600); } else { toggleOnline(); } };
+  document.getElementById("disc-no").onclick = function() { m.remove(); };
+}
+
+var PERM_INFO = {
+  localizacao: { titulo: "Localizacao: permitir o tempo todo", dica: "Em Permissoes > Localizacao, escolha Permitir o tempo todo.", alvo: "app" },
+  notificacoes: { titulo: "Notificacoes: ligadas", dica: "Em Notificacoes, deixe ativadas.", alvo: "app" },
+  sobrepor: { titulo: "Exibir sobre outros apps: permitido", dica: "Ative a opcao para o FlashDrop Motoboy. Assim o app abre sozinho quando chegar pedido novo.", alvo: "overlay" },
+  bateria: { titulo: "Bateria: sem otimizacao", dica: "Na lista, procure FlashDrop Motoboy e escolha Nao otimizar (Sem restricoes). Sem isso o Android pode fechar o app.", alvo: "battery" }
+};
 function showPermModal(faltando) {
   var old = document.getElementById("perm-modal"); if (old) old.remove();
-  var nomes = { localizacao: "Localizacao: permitir o tempo todo", notificacoes: "Notificacoes: ligadas" };
-  var lista = faltando.map(function(f) { return "<li style='margin:6px 0'>" + (nomes[f] || f) + "</li>"; }).join("");
+  var itens = faltando.map(function(f) {
+    var info = PERM_INFO[f] || { titulo: f, dica: "", alvo: "app" };
+    return "<div style='background:#1a1a1a;border:1px solid #444;border-radius:8px;padding:10px;margin-bottom:8px'>" +
+      "<div style='font-weight:700;color:#fff'>" + info.titulo + "</div>" +
+      "<div style='font-size:12px;color:#aaa;margin:4px 0 8px'>" + info.dica + "</div>" +
+      "<button data-alvo='" + info.alvo + "' class='perm-open' style='width:100%;padding:10px;border:0;border-radius:6px;background:#ffcc00;color:#000;font-weight:800;font-size:14px'>Ajustar agora</button></div>";
+  }).join("");
   var m = document.createElement("div"); m.id = "perm-modal";
-  m.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px";
-  m.innerHTML = "<div style='background:#222;border:1px solid #ffcc00;border-radius:12px;padding:20px;max-width:360px;width:100%;color:#fff;font-size:14px'>" +
-    "<div style='font-size:17px;font-weight:800;color:#ffcc00;margin-bottom:10px'>Falta liberar para ficar online</div>" +
-    "<ul style='margin:0 0 12px 18px;padding:0'>" + lista + "</ul>" +
-    "<div style='font-size:12px;color:#aaa;margin-bottom:14px'>Toque em Abrir configuracoes, ajuste o que falta e volte ao app.</div>" +
-    "<button id='perm-open' style='width:100%;padding:12px;border:0;border-radius:8px;background:#ffcc00;color:#000;font-weight:800;font-size:15px;margin-bottom:8px'>Abrir configuracoes</button>" +
-    "<button id='perm-close' style='width:100%;padding:10px;border:1px solid #555;border-radius:8px;background:transparent;color:#ccc;font-size:14px'>Fechar</button></div>";
+  m.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto";
+  m.innerHTML = "<div style='background:#222;border:1px solid #ffcc00;border-radius:12px;padding:18px;max-width:380px;width:100%;color:#fff;font-size:14px'>" +
+    "<div style='font-size:17px;font-weight:800;color:#ffcc00;margin-bottom:6px'>Falta liberar para ficar online</div>" +
+    "<div style='font-size:12px;color:#aaa;margin-bottom:12px'>Ajuste cada item e volte ao app. Quando estiver tudo certo, voce fica online automaticamente.</div>" +
+    itens +
+    "<button id='perm-close' style='width:100%;padding:10px;border:1px solid #555;border-radius:8px;background:transparent;color:#ccc;font-size:14px;margin-top:4px'>Fechar</button></div>";
   document.body.appendChild(m);
-  document.getElementById("perm-open").onclick = function() { if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify({ type: "openSettings" })); };
+  Array.prototype.forEach.call(m.querySelectorAll(".perm-open"), function(btn) {
+    btn.onclick = function() { postNative({ type: "openSettings", target: btn.getAttribute("data-alvo") }); };
+  });
   document.getElementById("perm-close").onclick = function() { m.remove(); };
 }
+
+// Ao voltar ao app (da configuracao, do mapa, ou quando o app abre sozinho): atualiza tudo.
+// Quem ja estava online antes desta versao ainda precisa ver a declaracao em destaque uma vez.
+setTimeout(async function() { try { if (user.online) { var p0 = await checkPermsNative(); if (p0.needConsent) showDisclosureModal(); } } catch (e) {} }, 3000);
+
+window.__appResumed = async function() {
+  try { refreshAllTimers(); } catch (e) {}
+  try { loadOrders(); } catch (e) {}
+  var pm = document.getElementById("perm-modal");
+  if (pm && !user.online) {
+    var perm = await checkPermsNative();
+    if (perm.ok) { pm.remove(); toggleOnline(); }
+    else if (perm.faltando && !perm.needConsent) { showPermModal(perm.faltando); }
+  }
+};
 
 async function toggleOnline() {
   if (user.online && activeOrders.length > 0) { alert("Voce nao pode ficar Offline com pedido em aberto!"); return; }
   var newOnline = !user.online;
   if (newOnline) {
     var perm = await checkPermsNative();
+    if (perm.needConsent) { showDisclosureModal(); return; }
     if (!perm.ok) { showPermModal(perm.faltando || []); return; }
   }
   try {
@@ -974,6 +1034,17 @@ init();
 export default function MotoboyWebApp({ user, onLogout }) {
   const webviewRef = useRef(null);
 
+  // Quando o motoboy volta ao app (do mapa, de uma configuracao, ou o app abre sozinho com pedido novo),
+  // avisa a pagina para atualizar contador, pedidos e a verificacao de permissoes.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active' && webviewRef.current) {
+        webviewRef.current.injectJavaScript('try { window.__appResumed && window.__appResumed(); } catch (e) {} true;');
+      }
+    });
+    return () => { sub.remove(); };
+  }, []);
+
   const injectedJS = `
     (function() {
       try {
@@ -992,7 +1063,7 @@ export default function MotoboyWebApp({ user, onLogout }) {
         ref={webviewRef}
         source={{ html, baseUrl: 'https://flashdrop-backend-production.up.railway.app' }}
         injectedJavaScriptBeforeContentLoaded={injectedJS}
-        onMessage={(event) => { try { var _m = JSON.parse(event.nativeEvent.data); if (_m && _m.type === 'checkPerms') { checarPermissoesOnline().then((r) => { if (webviewRef.current) webviewRef.current.injectJavaScript('window.__permResult(' + JSON.stringify(String(_m.id)) + ',' + JSON.stringify(r) + '); true;'); }); return; } if (_m && _m.type === 'openSettings') { Linking.openSettings().catch(() => {}); return; } if (_m && _m.type === 'startGPS') { startBackgroundLocationTracking(user && user.id, _m.orderId || null); return; } if (_m && _m.type === 'stopGPS') { stopBackgroundLocationTracking(); return; } } catch (_e) {}
+        onMessage={(event) => { try { var _m = JSON.parse(event.nativeEvent.data); if (_m && _m.type === 'checkPerms') { checarPermissoesOnline().then((r) => { if (webviewRef.current) webviewRef.current.injectJavaScript('window.__permResult(' + JSON.stringify(String(_m.id)) + ',' + JSON.stringify(r) + '); true;'); }); return; } if (_m && _m.type === 'consent') { setLocationConsent(!!_m.value); return; } if (_m && _m.type === 'openSettings') { if (_m.target === 'overlay') { openOverlaySettings(); } else if (_m.target === 'battery') { openBatterySettings(); } else { Linking.openSettings().catch(() => {}); } return; } if (_m && _m.type === 'startGPS') { startBackgroundLocationTracking(user && user.id, _m.orderId || null); return; } if (_m && _m.type === 'stopGPS') { stopBackgroundLocationTracking(); return; } } catch (_e) {}
           if (event.nativeEvent.data === 'logout') {
             onLogout();
           }
