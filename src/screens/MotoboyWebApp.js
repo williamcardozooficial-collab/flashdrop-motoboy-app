@@ -1,6 +1,29 @@
 import React, { useRef } from 'react';
-import { StyleSheet, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, Linking } from 'react-native';
+import * as Location from 'expo-location';
+import * as Notifications from 'expo-notifications';
 import { WebView } from 'react-native-webview'; import { startBackgroundLocationTracking, stopBackgroundLocationTracking } from '../backgroundLocationTask';
+
+// Confere as permissoes necessarias para o motoboy ficar online.
+// Retorna { ok, faltando: [...] } com os nomes (em portugues) do que ainda falta liberar.
+async function checarPermissoesOnline() {
+  const faltando = [];
+  try {
+    let fg = await Location.getForegroundPermissionsAsync();
+    if (fg.status !== 'granted') fg = await Location.requestForegroundPermissionsAsync();
+    let bg = await Location.getBackgroundPermissionsAsync();
+    if (fg.status === 'granted' && bg.status !== 'granted') {
+      try { bg = await Location.requestBackgroundPermissionsAsync(); } catch (e) {}
+    }
+    if (fg.status !== 'granted' || bg.status !== 'granted') faltando.push('localizacao');
+  } catch (e) { console.error('Erro ao checar localizacao:', e.message); }
+  try {
+    let n = await Notifications.getPermissionsAsync();
+    if (n.status !== 'granted') n = await Notifications.requestPermissionsAsync();
+    if (n.status !== 'granted') faltando.push('notificacoes');
+  } catch (e) { console.error('Erro ao checar notificacoes:', e.message); }
+  return { ok: faltando.length === 0, faltando };
+}
 
 const getHTML = (user) => `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -197,7 +220,7 @@ var _autoOfflineTimer = null;
 var _onlineAt = null;
         var notifEnabled = true;
         var _prevOrderIds = new Set();
-var AUTO_OFFLINE_MS = 180 * 60 * 1000;
+var AUTO_OFFLINE_MS = 360 * 60 * 1000;
 var TIMER_DURATION = 15 * 60;
 
 var STATUS_LABELS = { pendente:"Aguardando", aceito:"Aceito", na_loja:"Na Loja", coletado:"A Entregar", no_cliente:"No Cliente", entregue:"Entregue", retornado:"Retornado", cancelado:"Cancelado" };
@@ -210,16 +233,43 @@ var ACTION_MAP = {
   no_cliente: { label:"Entreguei", icon:"&#x1F389;", cls:"btn-entregue", next:"entregue", msg:"Entrega concluida! Saldo atualizado." }
 };
 
+function timerRemaining(orderId) {
+  var t = activeTimers[orderId];
+  if (!t) return 0;
+  return Math.ceil((t.deadline - Date.now()) / 1000);
+}
+
+function timerDeadlineLabel(deadlineMs) {
+  var d = new Date(deadlineMs);
+  var hh = d.getHours(); var mm = d.getMinutes();
+  return (hh < 10 ? "0" : "") + hh + ":" + (mm < 10 ? "0" : "") + mm;
+}
+
+function timerTextFor(rem, deadlineMs) {
+  if (rem <= 0) return "Tempo esgotado! Chegue logo na loja.";
+  var mins = Math.floor(rem / 60); var secs = rem % 60;
+  return "Chegue na loja em " + mins + ":" + (secs < 10 ? "0" : "") + secs + " (ate " + timerDeadlineLabel(deadlineMs) + ")";
+}
+
 function startTimer(orderId, elapsedSeconds) {
   if (activeTimers[orderId]) clearInterval(activeTimers[orderId].interval);
-  var remaining = TIMER_DURATION - (elapsedSeconds || 0);
-  activeTimers[orderId] = { remaining: remaining };
+  var remainingAtStart = TIMER_DURATION - (elapsedSeconds || 0);
+  // Prazo absoluto: o contador sempre e calculado pelo relogio, nao por contagem de ticks.
+  // Assim, se o app ficar em segundo plano (mapa, tela apagada), o valor volta certo ao reabrir.
+  activeTimers[orderId] = { deadline: Date.now() + remainingAtStart * 1000, alerted: false };
   activeTimers[orderId].interval = setInterval(function() {
-    activeTimers[orderId].remaining -= 1;
+    var t = activeTimers[orderId];
+    if (!t) return;
     updateTimerEl(orderId);
-    if (activeTimers[orderId].remaining <= 0) { clearInterval(activeTimers[orderId].interval); alert("Atencao! Tempo de 15 min atingido para o pedido #" + orderId + ". Chegue logo!"); }
+    if (timerRemaining(orderId) <= 0 && !t.alerted) { t.alerted = true; clearInterval(t.interval); alert("Atencao! Tempo de 15 min atingido para o pedido #" + orderId + ". Chegue logo!"); }
   }, 1000);
 }
+
+function refreshAllTimers() {
+  Object.keys(activeTimers).forEach(function(id) { updateTimerEl(id); });
+}
+document.addEventListener("visibilitychange", function() { if (!document.hidden) refreshAllTimers(); });
+window.addEventListener("focus", refreshAllTimers);
 
 function stopTimer(orderId) {
   if (activeTimers[orderId]) { clearInterval(activeTimers[orderId].interval); delete activeTimers[orderId]; }
@@ -228,10 +278,9 @@ function stopTimer(orderId) {
 function updateTimerEl(orderId) {
   var el = document.getElementById("timer-" + orderId);
   if (!el) return;
-  var rem = activeTimers[orderId] ? activeTimers[orderId].remaining : 0;
-  var mins = Math.floor(Math.max(rem, 0) / 60);
-  var secs = Math.max(rem, 0) % 60;
-  el.querySelector(".timer-text").textContent = rem <= 0 ? "Tempo esgotado! Chegue logo na loja." : ("Chegue na loja em " + mins + ":" + (secs < 10 ? "0" : "") + secs);
+  var rem = activeTimers[orderId] ? timerRemaining(orderId) : 0;
+  var dl = activeTimers[orderId] ? activeTimers[orderId].deadline : Date.now();
+  el.querySelector(".timer-text").textContent = timerTextFor(rem, dl);
   el.className = "timer-box " + (rem <= 120 ? "urgent" : rem <= 300 ? "" : "ok");
 }
 
@@ -242,9 +291,42 @@ function updateStatusUI() {
   var sairBtn = document.getElementById('sair-btn'); if(sairBtn) sairBtn.style.display = user.online ? 'none' : 'block';
 }
 
+var _permResolvers = {};
+window.__permResult = function(id, r) { if (_permResolvers[id]) { var f = _permResolvers[id]; delete _permResolvers[id]; f(r); } };
+function checkPermsNative() {
+  return new Promise(function(res) {
+    if (!window.ReactNativeWebView) { res({ ok: true }); return; }
+    var id = String(Date.now());
+    _permResolvers[id] = res;
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: "checkPerms", id: id }));
+    // Se o app nativo nao responder, nao trava o motoboy fora do ar.
+    setTimeout(function() { if (_permResolvers[id]) { delete _permResolvers[id]; res({ ok: true, timeout: true }); } }, 10000);
+  });
+}
+function showPermModal(faltando) {
+  var old = document.getElementById("perm-modal"); if (old) old.remove();
+  var nomes = { localizacao: "Localizacao: permitir o tempo todo", notificacoes: "Notificacoes: ligadas" };
+  var lista = faltando.map(function(f) { return "<li style='margin:6px 0'>" + (nomes[f] || f) + "</li>"; }).join("");
+  var m = document.createElement("div"); m.id = "perm-modal";
+  m.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px";
+  m.innerHTML = "<div style='background:#222;border:1px solid #ffcc00;border-radius:12px;padding:20px;max-width:360px;width:100%;color:#fff;font-size:14px'>" +
+    "<div style='font-size:17px;font-weight:800;color:#ffcc00;margin-bottom:10px'>Falta liberar para ficar online</div>" +
+    "<ul style='margin:0 0 12px 18px;padding:0'>" + lista + "</ul>" +
+    "<div style='font-size:12px;color:#aaa;margin-bottom:14px'>Toque em Abrir configuracoes, ajuste o que falta e volte ao app.</div>" +
+    "<button id='perm-open' style='width:100%;padding:12px;border:0;border-radius:8px;background:#ffcc00;color:#000;font-weight:800;font-size:15px;margin-bottom:8px'>Abrir configuracoes</button>" +
+    "<button id='perm-close' style='width:100%;padding:10px;border:1px solid #555;border-radius:8px;background:transparent;color:#ccc;font-size:14px'>Fechar</button></div>";
+  document.body.appendChild(m);
+  document.getElementById("perm-open").onclick = function() { if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify({ type: "openSettings" })); };
+  document.getElementById("perm-close").onclick = function() { m.remove(); };
+}
+
 async function toggleOnline() {
   if (user.online && activeOrders.length > 0) { alert("Voce nao pode ficar Offline com pedido em aberto!"); return; }
   var newOnline = !user.online;
+  if (newOnline) {
+    var perm = await checkPermsNative();
+    if (!perm.ok) { showPermModal(perm.faltando || []); return; }
+  }
   try {
     var resp = await fetch(API + "/users/" + user.id, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ online: newOnline }) });
     if (resp.ok) {
@@ -322,10 +404,8 @@ function makeProgressEl(status) {
 function makeTimerEl(orderId, tAceito) {
   var elapsed = tAceito ? Math.floor((Date.now() - new Date(tAceito).getTime()) / 1000) : 0;
   var remaining = TIMER_DURATION - elapsed;
-  var rem = Math.max(remaining, 0);
-  var mins = Math.floor(rem / 60); var secs = rem % 60;
   var cls = remaining <= 120 ? "urgent" : remaining <= 300 ? "" : "ok";
-  var txt = remaining <= 0 ? "Tempo esgotado! Chegue logo na loja." : ("Chegue na loja em " + mins + ":" + (secs < 10 ? "0" : "") + secs);
+  var txt = timerTextFor(remaining, Date.now() + remaining * 1000);
   var box = document.createElement("div"); box.className = "timer-box " + cls; box.id = "timer-" + orderId;
   var icon = document.createElement("span"); icon.className = "timer-icon"; icon.innerHTML = "&#x23F1;";
   var text = document.createElement("span"); text.className = "timer-text"; text.textContent = txt;
@@ -912,7 +992,7 @@ export default function MotoboyWebApp({ user, onLogout }) {
         ref={webviewRef}
         source={{ html, baseUrl: 'https://flashdrop-backend-production.up.railway.app' }}
         injectedJavaScriptBeforeContentLoaded={injectedJS}
-        onMessage={(event) => { try { var _m = JSON.parse(event.nativeEvent.data); if (_m && _m.type === 'startGPS') { startBackgroundLocationTracking(user && user.id, _m.orderId || null); return; } if (_m && _m.type === 'stopGPS') { stopBackgroundLocationTracking(); return; } } catch (_e) {}
+        onMessage={(event) => { try { var _m = JSON.parse(event.nativeEvent.data); if (_m && _m.type === 'checkPerms') { checarPermissoesOnline().then((r) => { if (webviewRef.current) webviewRef.current.injectJavaScript('window.__permResult(' + JSON.stringify(String(_m.id)) + ',' + JSON.stringify(r) + '); true;'); }); return; } if (_m && _m.type === 'openSettings') { Linking.openSettings().catch(() => {}); return; } if (_m && _m.type === 'startGPS') { startBackgroundLocationTracking(user && user.id, _m.orderId || null); return; } if (_m && _m.type === 'stopGPS') { stopBackgroundLocationTracking(); return; } } catch (_e) {}
           if (event.nativeEvent.data === 'logout') {
             onLogout();
           }
